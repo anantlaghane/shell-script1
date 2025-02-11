@@ -9,14 +9,22 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'master', url: 'https://github.com/your-username/linux-repo.git'
+                script {
+                    checkout([$class: 'GitSCM',
+                        branches: [[name: '*/master']],
+                        userRemoteConfigs: [[
+                            url: 'https://github.com/your-username/linux-repo.git',
+                            credentialsId: 'your-jenkins-credentials-id' // Use Jenkins credentials
+                        ]]
+                    ])
+                }
             }
         }
 
         stage('Run Shell Script') {
             steps {
                 sh 'chmod +x student_info.sh'
-                sh './student_info.sh "$STUDENT_NAME" "$CITY"'
+                sh './student_info.sh ${params.STUDENT_NAME} ${params.CITY}'
             }
         }
     }
