@@ -11,10 +11,10 @@ pipeline {
             steps {
                 script {
                     checkout([$class: 'GitSCM',
-                        branches: [[name: '*/master']],
+                        branches: [[name: '*/main']],
                         userRemoteConfigs: [[
-                            url: 'https://github.com/your-username/linux-repo.git',
-                            credentialsId: 'your-jenkins-credentials-id' // Use Jenkins credentials
+                            url: 'https://github.com/anantlaghane/shell-script1.git',
+                            credentialsId: 'linux' // Use Jenkins credentials
                         ]]
                     ])
                 }
