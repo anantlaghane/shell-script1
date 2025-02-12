@@ -25,7 +25,7 @@ pipeline {
             steps {
                // sh 'chmod +x student_info.sh'
              //   sh './student_info.sh ${params.STUDENT_NAME} ${params.CITY}'
-                sh 'student_info.sh'
+                sh 'pwd'
             }
         }
     }
