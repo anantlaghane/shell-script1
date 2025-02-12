@@ -23,9 +23,11 @@ pipeline {
 
         stage('Run Shell Script') {
             steps {
+                script { 
                // sh 'chmod +x student_info.sh'
              //   sh './student_info.sh ${params.STUDENT_NAME} ${params.CITY}'
                 sh 'sh student_info.sh ${params.STUDENT_NAME} ${params.CITY}'
+                }
             }
         }
     }
