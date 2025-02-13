@@ -2,24 +2,24 @@ pipeline {
     agent any
     
     parameters {
-        string(name: 'STRING_PARAM', defaultValue: 'Default String', description: 'Enter a string value')
-        booleanParam(name: 'BOOLEAN_PARAM', defaultValue: false, description: 'Select true or false')
-        choice(name: 'CHOICE_PARAM', choices: ['Option1', 'Option2', 'Option3'], description: 'Select a choice')
+        string(name: 'Your Name', defaultValue: 'Default String', description: 'Enter a string value')
+        booleanParam(name: 'Select Option', defaultValue: false, description: 'Select true or false')
+        choice(name: 'Select Your Choice', choices: ['Option1', 'Option2', 'Option3'], description: 'Select a choice')
         password(name: 'PASSWORD_PARAM', description: 'Enter a password')
-        text(name: 'TEXT_PARAM', defaultValue: 'Default text content', description: 'Enter multiline text')
-        file(name: 'FILE_PARAM', description: 'Upload a file')
+        text(name: 'Description', defaultValue: 'Default text content', description: 'Enter multiline text')
+        file(name: 'Upload File', description: 'Upload a file')
     }
     
     stages {
         stage('Display Parameters') {
             steps {
                 script {
-                    echo "String Parameter: ${params.STRING_PARAM}"
-                    echo "Boolean Parameter: ${params.BOOLEAN_PARAM}"
-                    echo "Choice Parameter: ${params.CHOICE_PARAM}"
+                    echo "String Parameter: ${params.Your Name}"
+                    echo "Boolean Parameter: ${params.Select Option}"
+                    echo "Choice Parameter: ${params.Select Your Choice}"
                     echo "Password Parameter: (hidden for security)"
-                    echo "Text Parameter: ${params.TEXT_PARAM}"
-                    echo "File Parameter: ${params.FILE_PARAM}"
+                    echo "Text Parameter: ${params.Description}"
+                    echo "File Parameter: ${params.Upload File}"
                 }
             }
         }
