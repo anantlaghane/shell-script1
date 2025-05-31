@@ -37,19 +37,28 @@ pipeline {
             }
         }
 
+//sh "export ANSIBLE_FORCE_COLOR=true; ansible-playbook -i inventory/hosts agentAutomation_all.yml --extra-vars env=${item1} --extra-vars name_of_the_server=${
+
+//--extra-vars additional_config_values='${additional_config_values)'"
+
+
         stage('Agent Automation') {
             steps {
                 dir('ansible/scripts') {
                     script {
-                      //  def envList     = params.env.tokenize(',')*.trim()
-                        def serverList  = params.name_of_the_server.tokenize(',')*.trim()
-                        def instanceLim = params.on_which_instances?.trim()
+                      String[] myEnv params.env.split(",");
+                      String[] myServer = params.name_of_the_server.split(",");
+
+                      String[] instances = params.on_which_instances.split(",");
+                    int itemCount instances.size();
+                       // def serverList  = params.name_of_the_server.tokenize(',')*.trim()
+                       // def instanceLim = params.on_which_instances?.trim()
                        // def extraVars   = params.additional_config_values?.trim()
 
-                        for (env in envList) {
-                            for (server in serverList) {
-                                  sh "add_servers.sh ${env} ${server} ${params.type_of_the_server} ${params.action_on_server} ${params.type_of_the_server}"   
-                            }
+                        for (String item1: myEnv) {
+                        for (String item2: myServer) {
+                         sh "add_servers.sh ${item1} ${item2} ${params.type_of_the_server} ${params.action_on_server} ${params.type_of_the_server}"   
+                        }
                         }
                     }
                 }
