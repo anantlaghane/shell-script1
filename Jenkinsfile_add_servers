@@ -1,0 +1,59 @@
+pipeline {
+    agent any
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '60'))
+        ansiColor('xterm')  // Enable colored output
+    }
+
+    parameters {
+        string(name: 'env',
+               description: 'Comma-separated environments (e.g. dev,qa,prod)')
+        string(name: 'name_of_the_server',
+               description: 'Comma-separated server names (e.g. web01,web02)')
+        string(name: 'on_which_instances',
+               defaultValue: '',
+               description: 'Limit to specific instances (optional, e.g. app,db)')
+        string(name: 'additional_config_values',
+               defaultValue: '',
+               description: 'Extra Ansible variables (optional)')
+        choice(name: 'BRANCH',
+               choices: ['main', 'develop', 'feature'],
+               description: 'Git branch to checkout')
+    }
+
+    stages {
+
+        stage('Checkout Git') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*main"]],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/anantlaghane/shell-script1.git',
+                        credentialsId: 'Git'
+                    ]]
+                ])
+            }
+        }
+
+        // stage('Agent Automation') {
+        //     steps {
+        //         dir('ansible') {
+        //             script {
+        //                 def envList     = params.env.tokenize(',')*.trim()
+        //                 def serverList  = params.name_of_the_server.tokenize(',')*.trim()
+        //                 def instanceLim = params.on_which_instances?.trim()
+        //                // def extraVars   = params.additional_config_values?.trim()
+
+        //                 for (env in envList) {
+        //                     for (server in serverList) {
+        //                           sh "add_servers.sh ${env} ${server} ${params.type_of_the_server} ${params.action_on_server} ${params.type_of_the_server}"   
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+    }
+}
