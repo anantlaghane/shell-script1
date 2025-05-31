@@ -49,8 +49,8 @@ pipeline {
                       String[] myEnv params.env.split(",");
                       String[] myServer = params.name_of_the_server.split(",");
 
-                      String[] instances = params.on_which_instances.split(",");
-                    int itemCount instances.size();
+                     // String[] instances = params.on_which_instances.split(",");
+                    //int itemCount instances.size();
                        // def serverList  = params.name_of_the_server.tokenize(',')*.trim()
                        // def instanceLim = params.on_which_instances?.trim()
                        // def extraVars   = params.additional_config_values?.trim()
