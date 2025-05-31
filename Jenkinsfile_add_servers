@@ -1,10 +1,10 @@
 pipeline {
     agent any
 
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '60'))
-        ansiColor('xterm')  // Enable colored output
-    }
+   // options {
+    //    buildDiscarder(logRotator(numToKeepStr: '60'))
+     //   ansiColor('xterm')  // Enable colored output
+  //  }
 
     parameters {
         string(name: 'env',
