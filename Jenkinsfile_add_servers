@@ -60,7 +60,7 @@ pipeline {
                         for (String item1: myEnv) {
                         for (String item2: myServer) {
                          sh "pwd"
-                         sh "sh add_servers.sh ${item1} ${item2} ${params.type_of_the_server} ${params.action_on_server} ${params.type_of_the_server}"   
+                         sh "./add_servers.sh ${item1} ${item2} ${params.type_of_the_server} ${params.action_on_server} ${params.type_of_the_server}"   
                         }
                         }
                     }
