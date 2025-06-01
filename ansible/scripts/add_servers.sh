@@ -49,7 +49,7 @@ case $action_on_server in
 
         find_min_n_add)
 
-        for (( c=1; c<=2; c++ )); do
+        for (( c=1; c<=$total_no_of_instances; c++ )); do
 
             if [ "$env" = "prf1" ]; then
                 isServerExists=$(cat "prf_int_server${c}/properties/${type_of_the_server}servername.txt.INCRHEAP.${UENV}" | grep -w "$name_of_the_server" | wc -l)
