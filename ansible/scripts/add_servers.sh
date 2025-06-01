@@ -35,15 +35,18 @@ no_of_instances=1
 cd /var/lib/jenkins/workspace/add_servers/files/$env
 #cd /home/anantlaghane/myGit/shell-script1/files/$env
 echo "Hello ${on_which_instances}"
-
+>  count_of_servers_in_each_box.txt
 itemCount=$6
 #my_array=($(echo $on_which_instances | tr "," "\n"))
 
 pwd
-total_no_of_instances=`expr $(ls | grep int | wc -l)`
-echo $total_no_of_instances
+total_no_of_instances=`expr $(ls | grep $type_of_the_server | wc -l)`
+echo "total" $total_no_of_instances
 echo "ADD Action !!!"
 
+
+echo file name $type_of_the_server".txt."${UENV}
+cat  $type_of_the_server".txt."${UENV}
 
 case $action_on_server in
 
@@ -54,7 +57,7 @@ case $action_on_server in
             if [ "$env" = "prf1" ]; then
                 isServerExists=$(cat "prf_int_server${c}/properties/${type_of_the_server}servername.txt.INCRHEAP.${UENV}" | grep -w "$name_of_the_server" | wc -l)
             else
-                isServerExists=$(cat "intg.txt.${UENV}" | grep -w "$name_of_the_server" | wc -l)
+                isServerExists=$(cat $type_of_the_server".txt."${UENV} | grep -w "$name_of_the_server" | wc -l)
             fi
 
             if [ "$isServerExists" != 0 ]; then
@@ -69,7 +72,7 @@ case $action_on_server in
 
 #echo "" > count_of_servers_in_each_box.txt
 
-count_of_files=`expr $(ls | grep int | wc -l)`
+count_of_files=`expr $(ls | grep $type_of_the_server | wc -l)`
 pwd
 echo "count_of_files $count_of_files"
 
@@ -78,12 +81,13 @@ for ((c=1; c<=$count_of_files; c++)); do
         count_of_servers_in_each_Linux=$(cat "prf_int_server${c}/properties/${type_of_the_server}servername.txt.INCRHEAP.${UENV}" | wc -l)
         echo "prf_int_server${c}/properties/${type_of_the_server}servername.txt.INCRHEAP.${UENV} has $count_of_servers_in_each_Linux" >> count_of_servers_in_each_box.txt
     else
-        count_of_servers_in_each_Linux=$(cat "intg.txt.${UENV}" | wc -l)
+        count_of_servers_in_each_Linux=$(cat $type_of_the_server".txt."${UENV} | wc -l)
         echo "=====" $count_of_servers_in_each_Linux
         ls -lrt
         pwd
-        #exit0
-        echo "intg.txt.${UENV} has $count_of_servers_in_each_Linux" >> count_of_servers_in_each_box.txt
+
+        echo "$type_of_the_server.txt.${UENV} has $count_of_servers_in_each_Linux" >> count_of_servers_in_each_box.txt
+        #exit
         #sudo bash -c 'echo intg.txt.'${UENV}' has '$count_of_servers_in_each_Linux' >> count_of_servers_in_each_box.txt'
         echo "file display"
         cat count_of_servers_in_each_box.txt
@@ -103,6 +107,8 @@ my_array=($(cat count_of_servers_in_each_box.txt | awk -F" " '{ print $NF }'))
 
 min=${my_array[0]}
 
+
+echo "min value" $min
 for element in "${my_array[@]}"; do
     echo "Smallest element is: $min"
 
