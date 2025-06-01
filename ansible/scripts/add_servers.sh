@@ -118,9 +118,9 @@ for element in "${my_array[@]}"; do
     # - sudo bash -c 'echo '$name_of_the_server' >> '$new_filename''
     echo "$name_of_the_server $additional_config_values" >> "$filename"
 
-    #git add -A
-    #git commit -m "sticket_number: Added ${type_of_the_server} server $name_of_the_server in ${UENV}"
-    #git push origin feature/sticket_number
+    git add -A
+    git commit -m "Added ${type_of_the_server} server $name_of_the_server in ${UENV}"
+    git push origin main
 
     break
 done
