@@ -32,8 +32,8 @@ no_of_instances=1
 # ------------------------------------------------------------------
 # 4. Part 2 – senv processing
 # ------------------------------------------------------------------
-#cd /var/lib/jenkins/workspace/add_servers/files/$env
-cd /home/anantlaghane/myGit/shell-script1/files/$env
+cd /var/lib/jenkins/workspace/add_servers/files/$env
+#cd /home/anantlaghane/myGit/shell-script1/files/$env
 echo "Hello ${on_which_instances}"
 
 itemCount=$6
