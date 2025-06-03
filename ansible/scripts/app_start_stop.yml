@@ -1,45 +1,45 @@
 ---
-- name: Manage app service
+- name: Manage Tomcat service
   hosts: localhost
   become: yes
-  vars: 
-    service_name_map:
-      tomcat_bin: /opt/tomcat/apache-tomcat-8.5.97
+  vars:
+    tomcat_bin: /opt/tomcat/apache-tomcat-8.5.97/bin
 
   tasks:
-  - name: Start Tomcat
-    when: action == "start"
-    shell: "{{ tomcat_bin }}/startup.sh"
-    register: start_out
-    changed_when: "'Tomcat started' in start_out.shdout or start_out.rc == 0"
 
-  - name: Show start output
-    when: action == "start"
-    debug: 
-      var: start_out.shdout_lines
+    - name: Start Tomcat
+      when: action == "start"
+      shell: "{{ tomcat_bin }}/startup.sh"
+      register: start_out
+      changed_when: "'Tomcat started' in start_out.stdout or start_out.rc == 0"
 
-  - name: Stop Tomcat
-    when: action == "stop"
-    shell: "{{ tomcat_bin }}/shutdown.sh"
-    register: stop_out
-    changed_when: "'Tomcat stopped' in stop_out.stdout or stop_out.rc == 0"
+    - name: Show start output
+      when: action == "start"
+      debug:
+        var: start_out.stdout_lines
 
-  - name: show stop output
-    when: action == "stop"
-    debug: 
-      var: stop_out.stout_lines
+    - name: Stop Tomcat
+      when: action == "stop"
+      shell: "{{ tomcat_bin }}/shutdown.sh"
+      register: stop_out
+      changed_when: "'Tomcat stopped' in stop_out.stdout or stop_out.rc == 0"
 
-  - name: Check Tomcat status (ps output)
-    when: action == "status"
-    shell: "ps -ef | grep [t]omcat || true"
-    register: status_out
-    changed_when: false
+    - name: Show stop output
+      when: action == "stop"
+      debug:
+        var: stop_out.stdout_lines
 
-  - name: Display status
-    when: action == "status"
-    debug: 
-      msg: |
-         {% if status_out.stdout %}
+    - name: Check Tomcat status (ps output)
+      when: action == "status"
+      shell: "ps -ef | grep [t]omcat || true"
+      register: status_out
+      changed_when: false
+
+    - name: Display status
+      when: action == "status"
+      debug:
+        msg: |
+          {% if status_out.stdout %}
           Tomcat process(es) running:
           {{ status_out.stdout }}
           {% else %}
