@@ -1,25 +1,30 @@
-
-pipeline{
+pipeline {
     agent any
+
     stages {
-        stage('Checkout Git'){
-            steps{
+        stage('Checkout Git') {
+            steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: "*/main"]],
+                    branches: [[name: '*/main']],
                     userRemoteConfigs: [[
                         url: 'https://github.com/anantlaghane/shell-script1.git',
                         credentialsId: 'Git'
                     ]]
-
                 ])
             }
-            stage(' Ansible'){
-                steps{
-                    script {
+        }
+
+        stage('Ansible') {
+            steps {
+                script {
                     echo "Running ${params.action} on ${params.app} for ${params.env} environment"
-                    sh " ansible-playbook -i inventory.yml start_stop_status.yml -e app=${params.app} -e env=${params.env} -e action=${params.action} "
-                    }
+                    sh """
+                        ansible-playbook -i inventory.yml start_stop_status.yml \
+                        -e app=${params.app} \
+                        -e env=${params.env} \
+                        -e action=${params.action}
+                    """
                 }
             }
         }
