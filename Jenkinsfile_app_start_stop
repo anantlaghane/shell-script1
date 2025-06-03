@@ -3,10 +3,10 @@ pipeline{
     agent any
     stages {
         stage('Checkout Git'){
-            stages{
+            steps{
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: "*main"]],
+                    branches: [[name: "*/main"]],
                     userRemoteConfigs: [[
                         url: 'https://github.com/anantlaghane/shell-script1.git',
                         credentialsId: 'Git'
