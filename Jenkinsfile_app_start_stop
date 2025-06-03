@@ -17,7 +17,8 @@ pipeline {
 
         stage('Ansible') {
             steps {
-                script {
+                dir('ansible/scripts'){
+                    script {
                     echo "Running ${params.action} on ${params.app} for ${params.env} environment"
                     sh """
                         ansible-playbook -i inventory.yml app_start_stop.yml \
@@ -25,6 +26,7 @@ pipeline {
                         -e env=${params.env} \
                         -e action=${params.action}
                     """
+                    }
                 }
             }
         }
