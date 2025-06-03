@@ -10,11 +10,8 @@
     - name: Start Tomcat
       when: action == "start"
       shell: "{{ tomcat_bin }}/startup.sh"
-      environment:
-        JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
-        PATH: "{{ ansible_env.PATH }}:/usr/lib/jvm/java-17-openjdk-amd64/bin"
       register: start_out
-      changed_when: start_out.rc == 0
+      changed_when: "'Tomcat started' in start_out.stdout or start_out.rc == 0"
 
     - name: Show start output
       when: action == "start"
@@ -24,11 +21,8 @@
     - name: Stop Tomcat
       when: action == "stop"
       shell: "{{ tomcat_bin }}/shutdown.sh"
-      environment:
-         JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
-         PATH: "{{ ansible_env.PATH }}:/usr/lib/jvm/java-17-openjdk-amd64/bin"
       register: stop_out
-      changed_when: stop_out.rc == 0
+      changed_when: "'Tomcat stopped' in stop_out.stdout or stop_out.rc == 0"
 
     - name: Show stop output
       when: action == "stop"
