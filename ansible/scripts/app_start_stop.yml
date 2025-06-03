@@ -11,7 +11,8 @@
       when: action == "start"
       shell: "{{ tomcat_bin }}/startup.sh"
       environment:
-        PATH: "{{ ansible_env.PATH }}"
+        JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+        PATH: "{{ ansible_env.PATH }}:/usr/lib/jvm/java-17-openjdk-amd64/bin"
       register: start_out
       changed_when: start_out.rc == 0
 
@@ -24,7 +25,8 @@
       when: action == "stop"
       shell: "{{ tomcat_bin }}/shutdown.sh"
       environment:
-        PATH: "{{ ansible_env.PATH }}"
+         JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+         PATH: "{{ ansible_env.PATH }}:/usr/lib/jvm/java-17-openjdk-amd64/bin"
       register: stop_out
       changed_when: stop_out.rc == 0
 
