@@ -26,7 +26,7 @@ pipeline {
                 dir('ansible/scripts') {  // ensure your script is inside this path
                     script {
                         sh '''
-                            echo "🏁 Running Docker Container Management Script..."
+                            echo "Running Docker Container Management Script..."
                             chmod +x manage_docker.sh
                             ./manage_docker.sh ${ACTION} ${CONTAINER}
                         '''
