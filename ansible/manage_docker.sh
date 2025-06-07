@@ -7,10 +7,9 @@ LOG_DIR="./logs"
 
 ALL_CONTAINERS=("sonarqube" "notes-app-running" "mysql" "backend")
 
-# Create logs folder if not exist
+
 mkdir -p "$LOG_DIR"
 
-# Decide which container(s) to target
 if [[ "$TARGET" == "all" ]]; then
     CONTAINERS=("${ALL_CONTAINERS[@]}")
 else
