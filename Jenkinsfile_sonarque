@@ -1,14 +1,7 @@
 pipeline {
     agent any
 
-    tools {
-        sonarQubeScanner 'SonarScanner'  // name defined in global tool config
-    }
-
-    environment {
-        SONARQUBE = credentials('Sonar') 
-    }
-
+   
     stages {
        stage('Checkout') {
             steps {
@@ -25,7 +18,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('MySonar') {  // name from configure system
+                withSonarQubeEnv('Sonar') {  // name from configure system
                     sh 'sonar-scanner'
                 }
             }
