@@ -6,7 +6,6 @@ LOG_DIR="./logs"
 
 
 ALL_CONTAINERS=("sonarqube" "notes-app-running" "mysql" "backend")
-TARGET=("sonarqube" "notes-app-running" "mysql" "backend")
 
 
 mkdir -p "$LOG_DIR"
