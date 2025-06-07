@@ -1,9 +1,12 @@
 pipeline {
     agent any
 
-   
+    environment {
+        SONAR_TOKEN = credentials('Sonar')  // Jenkins credentials ID with token
+    }
+
     stages {
-       stage('Checkout') {
+        stage('Checkout') {
             steps {
                 checkout([
                     $class: 'GitSCM',
@@ -18,8 +21,18 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('Sonar') {  // name from configure system
-                    sh 'sonar-scanner'
+                withSonarQubeEnv('Sonar') { // Name from "Manage Jenkins" > SonarQube servers
+                    sh '''
+                        docker run --rm \
+                          -v "${WORKSPACE}:/usr/src" \
+                          -w /usr/src \
+                          sonarsource/sonar-scanner-cli \
+                          sonar-scanner \
+                          -Dsonar.projectKey=myapp \
+                          -Dsonar.sources=. \
+                          -Dsonar.host.url=$SONAR_HOST_URL \
+                          -Dsonar.login=$SONAR_TOKEN
+                    '''
                 }
             }
         }
