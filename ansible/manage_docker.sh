@@ -33,10 +33,10 @@ for CONTAINER in "${CONTAINERS[@]}"; do
             docker ps -a --filter "name=$CONTAINER" > "$LOG_FILE" 2>&1
             ;;
         *)
-            echo "❌ Invalid action: $ACTION" | tee "$LOG_FILE"
+            echo " Invalid action: $ACTION" | tee "$LOG_FILE"
             exit 1
             ;;
     esac
 
-    echo "📄 Log saved: $LOG_FILE"
+    echo "Log saved: $LOG_FILE"
 done
