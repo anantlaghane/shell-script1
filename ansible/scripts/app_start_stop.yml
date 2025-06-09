@@ -1,0 +1,36 @@
+---
+- name: Manage Tomcat service via systemd
+  hosts: localhost
+  become: yes
+  vars:
+    action: start  
+
+  tasks:
+    - name: Start Tomcat
+      when: action == "start"
+      systemd:
+        name: tomcat
+        state: started
+
+    - name: Stop Tomcat
+      when: action == "stop"
+      systemd:
+        name: tomcat
+        state: stopped
+
+    - name: Restart Tomcat
+      when: action == "restart"
+      systemd:
+        name: tomcat
+        state: restarted
+
+    - name: Check Tomcat status
+      when: action == "status"
+      shell: systemctl status tomcat
+      register: status_out
+      changed_when: false
+
+    - name: Show status output
+      when: action == "status"
+      debug:
+        var: status_out.stdout_lines

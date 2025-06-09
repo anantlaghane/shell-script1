@@ -1,0 +1,30 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/anantlaghane/shell-script1.git',
+                        credentialsId: 'Git'
+                    ]]
+                ])
+            }
+        }
+
+        stage('Swap Management') {
+            steps {
+                  dir('ansible/scripts'){
+                  script {
+                    echo "Selected action: ${params.SWAP_ACTION}"
+                    sh "bash swap_manage.sh ${params.SWAP_ACTION}"
+                  }
+                }
+            }
+        }
+    }
+}

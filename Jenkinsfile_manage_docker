@@ -1,0 +1,49 @@
+@Library('Shared') _ 
+
+pipeline {
+    agent any
+
+    parameters {
+        choice(name: 'ACTION', choices: ['start', 'stop', 'status', 'restart'], description: 'Docker action to perform')
+        choice(name: 'CONTAINER', choices: ['all', 'sonarqube', 'artifactory', 'notes-app-running', 'mysql', 'backend'], description: 'Select container')
+    }
+
+    stages {
+
+        stage('Checkout Git') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']], 
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/anantlaghane/shell-script1.git',
+                        credentialsId: 'Git'
+                    ]]
+                ])
+            }
+        }
+
+        stage('Run Docker Script') {
+            steps {
+                dir('ansible') {  
+                    script {
+                        sh '''
+                            echo "Running Docker Container Management Script..."
+                            chmod +x manage_docker.sh
+                            ./manage_docker.sh ${ACTION} ${CONTAINER}
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Docker action '${params.ACTION}' completed for '${params.CONTAINER}'."
+        }
+        failure {
+            echo " Docker '${params.ACTION}' failed on '${params.CONTAINER}'."
+        }
+    }
+}
