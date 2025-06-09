@@ -23,6 +23,13 @@ stages{
               }
             }
 
+            stage('Clean Corrupted Maven Plugin') {
+            steps {
+                // Shell command to delete corrupted maven-clean-plugin folder
+                sh 'rm -rf /var/lib/jenkins/.m2/repository/org/apache/maven/plugins/maven-clean-plugin/3.2.0'
+            }
+        }
+
         stage('Build and Upload') {
             when {
                 expression { params.ACTION == 'build' }
@@ -32,7 +39,7 @@ stages{
                     def server = Artifactory.server("${ARTIFACTORY}")
                     def rtMaven = Artifactory.newMavenBuild()
                     rtMaven.tool = 'Maven-3.9'
-                    rtMaven.resolver server: server, releaseRepo: 'libs-release', snapshotRepo: 'libs-snapshot'
+                    rtMaven.resolver server: server, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-snapshot'
                     rtMaven.deployer server: server, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-snapshot'
                     rtMaven.run pom: 'my_maven/pom.xml', goals: 'clean install'
 
