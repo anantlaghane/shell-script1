@@ -9,7 +9,7 @@ pipeline {
         ARTIFACTORY = 'Artifactory'
         REPO = 'libs-release-local'
     }
-
+stages{
     stage('Checkout Git') {
             steps {
                 checkout([
@@ -20,6 +20,7 @@ pipeline {
                         credentialsId: 'Git'
                     ]]
                 ])
+              }
             }
 
         stage('Build and Upload') {
