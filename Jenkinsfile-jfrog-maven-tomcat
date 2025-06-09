@@ -23,13 +23,6 @@ stages{
               }
             }
 
-            stage('Clean Corrupted Maven Plugin') {
-            steps {
-                // Shell command to delete corrupted maven-clean-plugin folder
-                sh 'rm -rf /var/lib/jenkins/.m2/repository/org/apache/maven/plugins/maven-clean-plugin/3.2.0'
-            }
-        }
-
         stage('Build and Upload') {
             when {
                 expression { params.ACTION == 'build' }
