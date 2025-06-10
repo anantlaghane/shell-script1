@@ -1,6 +1,7 @@
 pipeline {
     agent any
 
+
     tools {
         maven 'Maven-3.9'
     }
@@ -9,6 +10,12 @@ pipeline {
         ARTIFACTORY = 'Artifactory'
         REPO = 'libs-release-local'
     }
+    parameters {
+    choice(name: 'ACTION', choices: ['build', 'deploy'], description: 'Choose action')
+    string(name: 'APP_NAME', defaultValue: 'sample', description: 'App name to deploy')
+    choice(name: 'DEPLOY_ENV', choices: ['dev', 'prod'], description: 'Deployment environment')
+}
+
 stages{
     stage('Checkout Git') {
             steps {
@@ -45,7 +52,6 @@ stages{
                         ]
                     }"""
                     server.upload(spec: uploadSpec)
-                     resolver: server.mavenResolver('maven', 'maven')
                 }
             }
         }
