@@ -45,6 +45,7 @@ stages{
                         ]
                     }"""
                     server.upload(spec: uploadSpec)
+                     resolver: server.mavenResolver('maven', 'maven')
                 }
             }
         }
