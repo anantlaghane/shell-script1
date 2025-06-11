@@ -14,10 +14,10 @@ pipeline {
     choice(name: 'ACTION', choices: ['build', 'deploy'], description: 'Choose action')
     string(name: 'APP_NAME', defaultValue: 'sample', description: 'App name to deploy')
     choice(name: 'DEPLOY_ENV', choices: ['dev', 'prod'], description: 'Deployment environment')
-}
+    } 
 
-stages{
-    stage('Checkout Git') {
+ stages{
+     stage('Checkout Git') {
             steps {
                 checkout([
                     $class: 'GitSCM',
@@ -43,15 +43,17 @@ stages{
                     rtMaven.tool = 'Maven-3.9'
                     rtMaven.resolver server: server, releaseRepo: 'maven', snapshotRepo: 'maven'
                     rtMaven.deployer server: server, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-release-local'
-                    //rtMaven.run pom: 'my_maven/pom.xml', goals: 'clean install'
-
 
                     def uploadSpec = """{
                         "files": [
                             {
                                 "pattern": "my_maven/target/*.jar",
-                                "target": "${REPO}/"
-                            }
+                                "target": "${REPO}/${params.APP_NAME}/"
+                            },
+                            {
+                                "pattern": "my_maven/target/*.war",
+                                "target": "${REPO}/${params.APP_NAME}/"
+                            },
                         ]
                     }"""
                     server.upload(spec: uploadSpec)
@@ -59,20 +61,7 @@ stages{
             }
         }
 
-//        stage('Deploy to Tomcat') {
-//     when {
-//         expression { params.ACTION == 'deploy' }
-//     }
-//     steps {
-//         echo "Deploying ${params.APP_NAME} to ${params.DEPLOY_ENV} environment"
-//         sh """
-//         curl -v -u admin:Anant@123 -T my_maven/target/${params.APP_NAME}.war \\
-//           "http://localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
-//         """
-//     }
-// }
-
- stage('Deploy to Tomcat') {
+        stage('Deploy to Tomcat') {
             when {
                 expression { params.ACTION == 'deploy' }
             }
@@ -83,7 +72,7 @@ stages{
                     if (params.DEPLOY_ENV == 'dev') {
                         tomcatUrl = "http://localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
                     } else if (params.DEPLOY_ENV == 'prod') {
-                        tomcatUrl = "http://prod-server:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
+                        tomcatUrl = "http://prod-server:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"  //reminder add one remote tomcat server and add this ip
                     }
 
                     echo "Deploying ${params.APP_NAME}.war to ${params.DEPLOY_ENV} environment"
