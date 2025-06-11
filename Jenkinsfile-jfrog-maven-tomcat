@@ -53,7 +53,7 @@ pipeline {
                             {
                                 "pattern": "my_maven/target/*.war",
                                 "target": "${REPO}/${params.APP_NAME}/"
-                            },
+                            }
                         ]
                     }"""
                     server.upload(spec: uploadSpec)
