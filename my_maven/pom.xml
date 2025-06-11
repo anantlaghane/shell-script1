@@ -12,7 +12,7 @@
     <packaging>war</packaging>
 
   <build>
-   <finalName>sample</finalName> 
+   <finalName>${APP_NAME}</finalName> 
 
  <plugins>
     <plugin>

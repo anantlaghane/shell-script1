@@ -38,6 +38,7 @@ pipeline {
 
                 script {
                     sh 'cd my_maven && mvn clean package'
+                    //sh "mv my_maven/target/*.war my_maven/target/${params.APP_NAME}.war"
                     def server = Artifactory.server("${ARTIFACTORY}")
                     def rtMaven = Artifactory.newMavenBuild()
                     rtMaven.tool = 'Maven-3.9'
