@@ -1,34 +1,37 @@
 pipeline {
     agent any
 
-
     tools {
-        maven 'Maven-3.9'
+        maven 'Maven-3.9'   // Jenkins me Maven tool ka name
     }
 
     environment {
-        ARTIFACTORY = 'Artifactory'
-        REPO = 'libs-release-local'
+        ARTIFACTORY = 'Artifactory'          // Jenkins me Artifactory server ka naam
+        REPO = 'libs-release-local'          // Artifactory repo jahan upload karna hai
+        TOMCAT_USER = 'admin'                 // Tomcat manager username
+        TOMCAT_PASS = 'Anant@123'             // Tomcat manager password (secure karna better hai)
+        TOMCAT_URL = 'http://localhost:8080' // Tomcat server URL
     }
-    parameters {
-    choice(name: 'ACTION', choices: ['build', 'deploy'], description: 'Choose action')
-    string(name: 'APP_NAME', defaultValue: 'sample', description: 'App name to deploy')
-    choice(name: 'DEPLOY_ENV', choices: ['dev', 'prod'], description: 'Deployment environment')
-}
 
-stages{
-    stage('Checkout Git') {
+    parameters {
+        choice(name: 'ACTION', choices: ['build', 'deploy'], description: 'Choose action')
+        string(name: 'APP_NAME', defaultValue: 'sample', description: 'App name to deploy (WAR file name without .war)')
+        choice(name: 'DEPLOY_ENV', choices: ['dev', 'prod'], description: 'Deployment environment')
+    }
+
+    stages {
+        stage('Checkout Git') {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: '*/main']], 
+                    branches: [[name: '*/main']],
                     userRemoteConfigs: [[
                         url: 'https://github.com/anantlaghane/shell-script1.git',
-                        credentialsId: 'Git'
+                        credentialsId: 'Git'     // Jenkins me Git credentials id
                     ]]
                 ])
-              }
             }
+        }
 
         stage('Build and Upload') {
             when {
@@ -39,16 +42,17 @@ stages{
                     def server = Artifactory.server("${ARTIFACTORY}")
                     def rtMaven = Artifactory.newMavenBuild()
                     rtMaven.tool = 'Maven-3.9'
-                    rtMaven.resolver server: server, releaseRepo: 'maven', snapshotRepo: 'maven'
-                    rtMaven.deployer server: server, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-release-local'
-                    //rtMaven.run pom: 'my_maven/pom.xml', goals: 'clean install'
+                    rtMaven.resolver server: server, releaseRepo: "${REPO}", snapshotRepo: "${REPO}"
+                    rtMaven.deployer server: server, releaseRepo: "${REPO}", snapshotRepo: "${REPO}"
+
+                    // Maven build command
                     sh 'cd my_maven && mvn clean package'
 
-
+                    // Upload WAR file to Artifactory
                     def uploadSpec = """{
                         "files": [
                             {
-                                "pattern": "my_maven/target/*.jar",
+                                "pattern": "my_maven/target/*.war",
                                 "target": "${REPO}/"
                             }
                         ]
@@ -58,18 +62,17 @@ stages{
             }
         }
 
-       stage('Deploy to Tomcat') {
-    when {
-        expression { params.ACTION == 'deploy' }
-    }
-    steps {
-        echo "Deploying ${params.APP_NAME} to ${params.DEPLOY_ENV} environment"
-        sh """
-        curl -v -u admin:Anant@123 -T my_maven/target/${params.APP_NAME}.war \\
-          "http://localhost:8080/manager/text/deploy?path=/${params.APP_NAME}&update=true"
-        """
-    }
-}
-
+        stage('Deploy to Tomcat') {
+            when {
+                expression { params.ACTION == 'deploy' }
+            }
+            steps {
+                echo "Deploying ${params.APP_NAME}.war to ${params.DEPLOY_ENV} environment"
+                sh """
+                    curl -v -u ${TOMCAT_USER}:${TOMCAT_PASS} -T my_maven/target/${params.APP_NAME}.war \\
+                      "${TOMCAT_URL}/manager/text/deploy?path=/${params.APP_NAME}&update=true"
+                """
+            }
+        }
     }
 }
