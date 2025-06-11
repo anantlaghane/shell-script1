@@ -106,4 +106,12 @@
     </plugins>
   </build>
 
+  <scm>
+  <connection>scm:git:https://github.com/anantlaghane/shell-script1.git</connection>
+  <developerConnection>scm:git:https://github.com/anantlaghane/shell-script1.git</developerConnection>
+  <url>https://github.com/anantlaghane/shell-script1</url>
+  <tag>HEAD</tag>
+</scm>
+
+
 </project>
