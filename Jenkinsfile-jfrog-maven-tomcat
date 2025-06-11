@@ -11,7 +11,7 @@ pipeline {
         REPO = 'libs-release-local'
     }
     parameters {
-    choice(name: 'ACTION', choices: ['build', 'deploy'], description: 'Choose action')
+    choice(name: 'ACTION', choices: ['build', 'deploy', 'build-deploy'], description: 'Choose action')
     string(name: 'APP_NAME', defaultValue: 'sample', description: 'App name to deploy')
     choice(name: 'DEPLOY_ENV', choices: ['dev', 'prod'], description: 'Deployment environment')
     } 
@@ -32,7 +32,7 @@ pipeline {
 
         stage('Build and Upload') {
             when {
-                expression { params.ACTION == 'build' }
+                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
             }
             steps {
 
@@ -63,7 +63,7 @@ pipeline {
 
         stage('Deploy to Tomcat') {
             when {
-                expression { params.ACTION == 'deploy' }
+                expression { params.ACTION == 'deploy' || params.ACTION == 'build-deploy' }
             }
             steps {
                 script {
