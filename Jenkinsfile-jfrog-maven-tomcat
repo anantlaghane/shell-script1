@@ -49,7 +49,6 @@ stages{
                         "files": [
                             {
                                 "pattern": "my_maven/target/*.jar",
-                                ls my_maven/target/
                                 "target": "${REPO}/"
                             }
                         ]
