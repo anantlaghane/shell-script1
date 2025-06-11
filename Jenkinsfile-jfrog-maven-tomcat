@@ -58,11 +58,14 @@ stages{
             }
         }
 
-       stage('Deploy to Tomcat') {
+     stage('Deploy to Tomcat') {
     when {
         expression { params.ACTION == 'deploy' }
     }
     steps {
+        echo "ACTION: ${params.ACTION}"
+        echo "APP_NAME: ${params.APP_NAME}"
+        echo "DEPLOY_ENV: ${params.DEPLOY_ENV}"
         echo "Deploying ${params.APP_NAME} to ${params.DEPLOY_ENV} environment"
         sh """
         curl -v -u admin:Anant@123 -T my_maven/target/${params.APP_NAME}.jar \\
@@ -70,6 +73,7 @@ stages{
         """
     }
 }
+
 
     }
 }
