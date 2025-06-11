@@ -41,12 +41,15 @@ stages{
                     rtMaven.tool = 'Maven-3.9'
                     rtMaven.resolver server: server, releaseRepo: 'maven', snapshotRepo: 'maven'
                     rtMaven.deployer server: server, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-release-local'
-                    rtMaven.run pom: 'my_maven/pom.xml', goals: 'clean install'
+                    //rtMaven.run pom: 'my_maven/pom.xml', goals: 'clean install'
+                    sh 'cd my_maven && mvn clean package'
+
 
                     def uploadSpec = """{
                         "files": [
                             {
-                                "pattern": "my_maven/target/*.jar",
+                                // "pattern": "my_maven/target/*.jar",
+                                ls my_maven/target/
                                 "target": "${REPO}/"
                             }
                         ]
@@ -62,10 +65,11 @@ stages{
             }
             steps {
                 echo "Deploying ${params.APP_NAME} to ${params.DEPLOY_ENV} environment"
-                sh """
-                curl -T target/*.war "http://admin:Anant@123@localhost:8085/manager/text/deploy?path=/sample&update=true"
+               sh """
+curl -T my_maven/target/${params.APP_NAME}.war \\
+  "http://admin:Anant%40123@localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
+"""
 
-                """
             }
         }
     }
