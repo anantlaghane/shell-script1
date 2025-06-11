@@ -65,7 +65,7 @@ stages{
     steps {
         echo "Deploying ${params.APP_NAME} to ${params.DEPLOY_ENV} environment"
         sh """
-        curl -v -u admin:Anant@123 -T my_maven/target/${params.APP_NAME}.war \\
+        curl -v -u admin:Anant@123 -T my_maven/target/${params.APP_NAME}.jar \\
           "http://localhost:8080/manager/text/deploy?path=/${params.APP_NAME}&update=true"
         """
     }
