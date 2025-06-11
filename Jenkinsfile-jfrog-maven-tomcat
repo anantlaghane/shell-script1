@@ -59,9 +59,11 @@ pipeline {
                     def warName = "${params.APP_NAME}-${buildNumber}-${buildTime}.war"
                     def jarName = "${params.APP_NAME}-${buildNumber}-${buildTime}.jar"
                     // Rename the war file
-                    sh "mv my_maven/target/${params.APP_NAME}*-exec.jar my_maven/target/${jarName}" || true
-                     sh "mv my_maven/target/${params.APP_NAME}.war my_maven/target/${warName}" || true
-                    env.JAR_NAME = jarName 
+                   //  sh "mv my_maven/target/${params.APP_NAME}*-exec.jar my_maven/target/${jarName}"
+                     //sh "mv my_maven/target/${params.APP_NAME}.war my_maven/target/${warName}" 
+                    sh "mv ${jarFile} my_maven/target/${jarName} || true"
+                    sh "mv ${warFile} my_maven/target/${warName} || true"  
+                    env.JAR_NAME = jarName
                     env.WAR_NAME = warName
 
 
@@ -69,7 +71,8 @@ pipeline {
                         "files": [
                             {
                                 "pattern": "my_maven/target/${jarName}",
-                                "target": "${REPO}/${params.APP_NAME}/"                               },
+                                "target": "${REPO}/${params.APP_NAME}/"   
+                            },
                             {
                                 "pattern": "my_maven/target/${warName}",
                                 "target": "${REPO}/${params.APP_NAME}/"
