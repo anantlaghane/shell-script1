@@ -54,7 +54,7 @@ pipeline {
                     def warName = "${params.APP_NAME}-${buildNumber}-${buildTime}.war"
                     def jarName = "${params.APP_NAME}-${buildNumber}-${buildTime}.jar"
                     // Rename the war file
-                    sh "mv my_maven/target/${params.APP_NAME}.jar my_maven/target/${jarName}"
+                    sh "mv my_maven/target/${params.APP_NAME}*-exec.jar my_maven/target/${jarName}"
                      sh "mv my_maven/target/${params.APP_NAME}.war my_maven/target/${warName}"
                     env.JAR_NAME = jarName
                     env.WAR_NAME = warName
