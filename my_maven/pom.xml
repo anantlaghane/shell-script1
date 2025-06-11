@@ -59,6 +59,7 @@
           </execution>
         </executions>
         <configuration>
+         <classifier>exec</classifier>
           <archive>
             <manifest>
               <mainClass>com.anant.Hello</mainClass>
