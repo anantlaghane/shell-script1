@@ -90,7 +90,11 @@ pipeline {
             }
             steps {
                 script {
-                    // Choose URL based on DEPLOY_ENV
+                     // Find WAR file name
+                     def warPath = sh(script: "ls my_maven/target/*.war", returnStdout: true).trim()
+                     def warName = warPath.tokenize('/').last()
+                     env.WAR_NAME = warName
+// Choose URL based on DEPLOY_ENV
                     def tomcatUrl = ""
                     if (params.DEPLOY_ENV == 'dev') {
                         tomcatUrl = "http://localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
