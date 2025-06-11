@@ -70,6 +70,12 @@ stages{
 //         """
 //     }
 // }
+  stage('Build') {
+            steps {
+                // Maven build command
+                sh 'mvn clean package'
+            }
+        }
 
  stage('Deploy to Tomcat') {
     when {
