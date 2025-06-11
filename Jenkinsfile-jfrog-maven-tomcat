@@ -36,15 +36,14 @@ stages{
             }
             steps {
 
-                 sh 'cd my_maven && mvn clean package'
                 script {
+                    sh 'cd my_maven && mvn clean package'
                     def server = Artifactory.server("${ARTIFACTORY}")
                     def rtMaven = Artifactory.newMavenBuild()
                     rtMaven.tool = 'Maven-3.9'
                     rtMaven.resolver server: server, releaseRepo: 'maven', snapshotRepo: 'maven'
                     rtMaven.deployer server: server, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-release-local'
                     //rtMaven.run pom: 'my_maven/pom.xml', goals: 'clean install'
-                    sh 'cd my_maven && mvn clean package'
 
 
                     def uploadSpec = """{
@@ -74,21 +73,27 @@ stages{
 // }
 
  stage('Deploy to Tomcat') {
-    when {
-        expression { params.ACTION == 'deploy' }
-    }
-    steps {
-        echo "ACTION: ${params.ACTION}"
-        echo "APP_NAME: ${params.APP_NAME}"
-        echo "DEPLOY_ENV: ${params.DEPLOY_ENV}"
-        echo "Deploying ${params.APP_NAME} to ${params.DEPLOY_ENV} environment"
-          sh "ls -lh ${warFile} || (echo 'WAR file not found!' && exit 1)"
-        sh """
-        curl -v -u admin:Anant@123 -T my_maven/target/${params.APP_NAME}.war \\
-          "http://localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
-        """
-    }
-}
+            when {
+                expression { params.ACTION == 'deploy' }
+            }
+            steps {
+                script {
+                    // Choose URL based on DEPLOY_ENV
+                    def tomcatUrl = ""
+                    if (params.DEPLOY_ENV == 'dev') {
+                        tomcatUrl = "http://localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
+                    } else if (params.DEPLOY_ENV == 'prod') {
+                        tomcatUrl = "http://prod-server:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
+                    }
+
+                    echo "Deploying ${params.APP_NAME}.war to ${params.DEPLOY_ENV} environment"
+                    sh """
+                        curl -v -u admin:Anant@123 -T my_maven/target/${params.APP_NAME}.war \\
+                        "${tomcatUrl}"
+                    """
+                }
+            }
+        }
 
     }
 }
