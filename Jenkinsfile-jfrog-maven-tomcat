@@ -35,6 +35,8 @@ stages{
                 expression { params.ACTION == 'build' }
             }
             steps {
+
+                 sh 'cd my_maven && mvn clean package'
                 script {
                     def server = Artifactory.server("${ARTIFACTORY}")
                     def rtMaven = Artifactory.newMavenBuild()
@@ -70,12 +72,6 @@ stages{
 //         """
 //     }
 // }
-  stage('Build') {
-            steps {
-                // Maven build command
-                sh 'mvn clean package'
-            }
-        }
 
  stage('Deploy to Tomcat') {
     when {
