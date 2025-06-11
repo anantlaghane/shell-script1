@@ -11,8 +11,14 @@
 
     <packaging>war</packaging>
 
+     <properties>
+    <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
+    <!-- default APP_NAME in case system property not passed -->
+    <APP_NAME>my-app</APP_NAME>
+  </properties>
+
   <build>
-   <finalName>${APP_NAME}</finalName> 
+   <finalName>${APP_NAME}-${maven.build.timestamp}</finalName> 
 
  <plugins>
     <plugin>
@@ -64,12 +70,33 @@
             <manifest>
               <mainClass>com.anant.Hello</mainClass>
             </manifest>
+            <manifestEntries>
+              <Build-Time>${maven.build.timestamp}</Build-Time>
+            </manifestEntries>
           </archive>
         </configuration>
       </plugin>
 
     </plugins>
   </build>
+
+    <pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </pluginManagement>
 
 </project>
 
