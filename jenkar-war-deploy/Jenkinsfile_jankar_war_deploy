@@ -65,15 +65,15 @@ pipeline {
     }
         }
 
-        stage('Push Docker Image') {
+          stage('Push Docker Image') {
             steps {
                 dir('jenkar-war-deploy') {
-                  script {
-                    docker.withRegistry("https://${DOCKER_REGISTRY}", 'docker') {
-                        docker.image("${DOCKER_REGISTRY}/${IMAGE_NAME}:latest").push()
+                    script {
+                        docker.withRegistry("${DOCKER_REGISTRY}", 'docker') {
+                            docker.image("${IMAGE_NAME}:latest").push()
+                        }
                     }
-                  }
-                }  
+                }
             }
         }
 
