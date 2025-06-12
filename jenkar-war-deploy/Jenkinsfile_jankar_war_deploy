@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+
+    environment {
+        //ARTIFACTORY_URL = "http://your-artifactory-server:8081/artifactory"
+        ARTIFACTORY = 'Artifactory'
+        DOCKER_REGISTRY = "your-docker-registry"
+        IMAGE_NAME = "jenkar-war-deploy"
+        SONARQUBE = "SonarQubeServer"  // Jenkins SonarQube server name
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/anantlaghane/your-repo.git', branch: 'main'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv(SONARQUBE) {
+                        sh 'mvn clean verify sonar:sonar'
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+
+        stage('Publish to Artifactory') {
+            steps {
+                sh "curl -u username:password -T target/${IMAGE_NAME}-*.war ${ARTIFACTORY}/libs-release-local/${IMAGE_NAME}/"
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("${DOCKER_REGISTRY}/${IMAGE_NAME}:latest")
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry("https://${DOCKER_REGISTRY}", 'docker-credentials-id') {
+                        docker.image("${DOCKER_REGISTRY}/${IMAGE_NAME}:latest").push()
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh "kubectl apply -f k8s/deployment.yaml"
+                sh "kubectl apply -f k8s/service.yaml"
+            }
+        }
+        
+        stage('Post Deploy Verification') {
+            steps {
+                sh "sleep 20"  // wait for pods to come up
+                sh "curl -f http://<loadbalancer-ip-or-node-ip>:80/health || exit 1"
+            }
+        }
+    }
+}

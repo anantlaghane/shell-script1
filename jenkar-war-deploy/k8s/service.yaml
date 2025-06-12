@@ -1,3 +1,12 @@
 apiVersion: v1
 kind: Service
-...
+metadata:
+  name: jenkar-war-service
+spec:
+  selector:
+    app: jenkar-war
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer

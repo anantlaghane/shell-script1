@@ -1,3 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
-...
+metadata:
+  name: jenkar-war-deploy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jenkar-war
+  template:
+    metadata:
+      labels:
+        app: jenkar-war
+    spec:
+      containers:
+      - name: jenkar-war-container
+        image: your-docker-registry/jenkar-war-deploy:latest
+        ports:
+        - containerPort: 8080
