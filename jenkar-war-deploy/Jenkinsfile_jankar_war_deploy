@@ -45,7 +45,7 @@ pipeline {
 
         stage('Publish to Artifactory') {
             steps {
-                sh "curl -u username:password -T target/${IMAGE_NAME}-*.war ${ARTIFACTORY}/libs-release-local/${IMAGE_NAME}/"
+                sh "curl -u admin:Anant@123 -T target/${IMAGE_NAME}-*.war ${ARTIFACTORY}/libs-release-local/${IMAGE_NAME}/"
             }
         }
 
