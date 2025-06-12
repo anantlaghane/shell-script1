@@ -4,7 +4,7 @@ pipeline {
     environment {
         //ARTIFACTORY_URL = "http://your-artifactory-server:8081/artifactory"
         ARTIFACTORY = 'Artifactory'
-        DOCKER_REGISTRY = "anantlaghane"
+        DOCKER_REGISTRY = "anantlaghane/jenkar-war-deploy"
         IMAGE_NAME = "jenkar-war-deploy"
         SONARQUBE = "Sonar"  // Jenkins SonarQube server name
     }
@@ -55,14 +55,23 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+    //     stage('Build Docker Image') {
+    //         steps {
+    //            dir('jenkar-war-deploy') { // go inside subfolder if needed
+    //            script {
+    //             docker.build("${DOCKER_REGISTRY}/${IMAGE_NAME}:latest", ".")
+    //         }
+    //     }
+    // }
+    //     }
+         stage('Build Docker Image') {
             steps {
-               dir('jenkar-war-deploy') { // go inside subfolder if needed
-               script {
-                docker.build("${DOCKER_REGISTRY}/${IMAGE_NAME}:latest", ".")
+                dir('jenkar-war-deploy') {
+                    script {
+                        docker.build("${IMAGE_NAME}:latest", ".")
+                    }
+                }
             }
-        }
-    }
         }
 
           stage('Push Docker Image') {
