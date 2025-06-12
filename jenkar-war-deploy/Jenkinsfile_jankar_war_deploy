@@ -37,11 +37,9 @@ pipeline {
 
         stage('Build') {
             steps {
-                dir('jenkar-war-deploy') {
                     dir('jenkar-war-deploy') {
                         sh 'mvn clean package'
                     }
-                }
             }
         }
 
