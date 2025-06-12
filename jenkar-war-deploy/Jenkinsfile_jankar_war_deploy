@@ -57,19 +57,23 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    docker.build("${DOCKER_REGISTRY}/${IMAGE_NAME}:latest")
-                }
+               dir('jenkar-war-deploy') { // go inside subfolder if needed
+               script {
+                docker.build("${DOCKER_REGISTRY}/${IMAGE_NAME}:latest", ".")
             }
+        }
+    }
         }
 
         stage('Push Docker Image') {
             steps {
-                script {
-                    docker.withRegistry("https://${DOCKER_REGISTRY}", 'docker-credentials-id') {
+                dir('jenkar-war-deploy') {
+                  script {
+                    docker.withRegistry("https://${DOCKER_REGISTRY}", 'docker') {
                         docker.image("${DOCKER_REGISTRY}/${IMAGE_NAME}:latest").push()
                     }
-                }
+                  }
+                }  
             }
         }
 
