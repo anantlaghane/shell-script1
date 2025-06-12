@@ -6,7 +6,7 @@ pipeline {
         ARTIFACTORY = 'Artifactory'
         DOCKER_REGISTRY = "your-docker-registry"
         IMAGE_NAME = "jenkar-war-deploy"
-        SONARQUBE = "SonarQubeServer"  // Jenkins SonarQube server name
+        SONARQUBE = "Sonar"  // Jenkins SonarQube server name
     }
 
     stages {
