@@ -79,15 +79,19 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
+                 dir('jenkar-war-deploy') {
                 sh "kubectl apply -f k8s/deployment.yaml"
                 sh "kubectl apply -f k8s/service.yaml"
+              }  
             }
         }
         
         stage('Post Deploy Verification') {
             steps {
+                 dir('jenkar-war-deploy') {
                 sh "sleep 20"  // wait for pods to come up
                 sh "curl -f http://<loadbalancer-ip-or-node-ip>:80/health || exit 1"
+                 }
             }
         }
     }
