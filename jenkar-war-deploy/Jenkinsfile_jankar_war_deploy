@@ -27,7 +27,9 @@ pipeline {
             steps {
                 script {
                     withSonarQubeEnv(SONARQUBE) {
-                        sh 'mvn clean verify sonar:sonar'
+                         dir('jenkar-war-deploy') {
+                    sh 'mvn clean verify sonar:sonar'
+                }
                     }
                 }
             }
