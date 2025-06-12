@@ -4,7 +4,7 @@ pipeline {
     environment {
         //ARTIFACTORY_URL = "http://your-artifactory-server:8081/artifactory"
         ARTIFACTORY = 'Artifactory'
-        DOCKER_REGISTRY = "your-docker-registry"
+        DOCKER_REGISTRY = "anantlaghane"
         IMAGE_NAME = "jenkar-war-deploy"
         SONARQUBE = "Sonar"  // Jenkins SonarQube server name
     }
@@ -43,13 +43,15 @@ pipeline {
             }
         }
 
-        stage('Publish to Artifactory') {
+         stage('Publish to Artifactory') {
             steps {
+                dir('jenkar-war-deploy') {
                     sh '''
                     WAR_FILE=$(ls target/jenkar-war-deploy-*.war | head -n 1)
                     echo "Uploading $WAR_FILE"
                     curl -u admin:Anant@123 -T "$WAR_FILE" http://172.26.170.164:8082/artifactory/libs-release-local/jenkar-war-deploy/
-'''
+                    '''
+                }
             }
         }
 
