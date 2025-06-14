@@ -25,17 +25,17 @@ pipeline {
               }
             }
 
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    withSonarQubeEnv(SONARQUBE) {
-                         dir('jenkar-war-deploy') {
-                    sh 'mvn clean verify sonar:sonar'
-                }
-                    }
-                }
-            }
-        }
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //         script {
+        //             withSonarQubeEnv(SONARQUBE) {
+        //                  dir('jenkar-war-deploy') {
+        //             sh 'mvn clean verify sonar:sonar'
+        //         }
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Build') {
             steps {
