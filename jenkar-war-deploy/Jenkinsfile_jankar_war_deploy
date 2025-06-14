@@ -4,10 +4,11 @@ pipeline {
     environment {
         //ARTIFACTORY_URL = "http://your-artifactory-server:8081/artifactory"
         ARTIFACTORY = 'Artifactory'
-        DOCKER_REGISTRY = "https://index.docker.io/v1/"  // ✅ Docker Hub ka correct URL
-        DOCKER_IMAGE_NAME = "anantlaghane/jenkar-war-deploy"  // ✅ docker image name yeh hona chahiye
+        DOCKER_REGISTRY = "https://index.docker.io/v1/"  // ✅ Docker Hub ka correct URL add kiya hai
+        DOCKER_IMAGE_NAME = "anantlaghane/jenkar-war-deploy"  // ✅ docker image name yeh hona chahiye 
         IMAGE_NAME = "jenkar-war-deploy"
         SONARQUBE = "Sonar"  // Jenkins SonarQube server name
+        KUBECONFIG = "/var/lib/jenkins/.kube/config"
     }
 
     stages {
@@ -69,7 +70,7 @@ pipeline {
             steps {
                 dir('jenkar-war-deploy') {
                     script {
-                        docker.build("${IMAGE_NAME}:latest", ".")
+                        docker.build("${DOCKER_IMAGE_NAME}:latest", ".")
                     }
                 }
             }
