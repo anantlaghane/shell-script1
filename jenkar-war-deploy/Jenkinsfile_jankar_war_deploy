@@ -45,48 +45,39 @@ pipeline {
             }
         }
 
-         stage('Publish to Artifactory') {
-            steps {
-                dir('jenkar-war-deploy') {
-                    sh '''
-                    WAR_FILE=$(ls target/jenkar-war-deploy-*.war | head -n 1)
-                    echo "Uploading $WAR_FILE"
-                    curl -u admin:Anant@123 -T "$WAR_FILE" http://172.26.170.164:8082/artifactory/libs-release-local/jenkar-war-deploy/
-                    '''
-                }
-            }
-        }
+        //  stage('Publish to Artifactory') {
+        //     steps {
+        //         dir('jenkar-war-deploy') {
+        //             sh '''
+        //             WAR_FILE=$(ls target/jenkar-war-deploy-*.war | head -n 1)
+        //             echo "Uploading $WAR_FILE"
+        //             curl -u admin:Anant@123 -T "$WAR_FILE" http://172.26.170.164:8082/artifactory/libs-release-local/jenkar-war-deploy/
+        //             '''
+        //         }
+        //     }
+        // }
 
-    //     stage('Build Docker Image') {
-    //         steps {
-    //            dir('jenkar-war-deploy') { // go inside subfolder if needed
-    //            script {
-    //             docker.build("${DOCKER_REGISTRY}/${IMAGE_NAME}:latest", ".")
-    //         }
-    //     }
-    // }
-    //     }
-         stage('Build Docker Image') {
-            steps {
-                dir('jenkar-war-deploy') {
-                    script {
-                        docker.build("${DOCKER_IMAGE_NAME}:latest", ".")
-                    }
-                }
-            }
-        }
+        //  stage('Build Docker Image') {
+        //     steps {
+        //         dir('jenkar-war-deploy') {
+        //             script {
+        //                 docker.build("${DOCKER_IMAGE_NAME}:latest", ".")
+        //             }
+        //         }
+        //     }
+        // }
 
-          stage('Push Docker Image') {
-            steps {
-                dir('jenkar-war-deploy') {
-                    script {
-                        docker.withRegistry("${DOCKER_REGISTRY}", 'docker') {
-                            docker.image("${DOCKER_IMAGE_NAME}:latest").push()
-                        }
-                    }
-                }
-            }
-        }
+        //   stage('Push Docker Image') {
+        //     steps {
+        //         dir('jenkar-war-deploy') {
+        //             script {
+        //                 docker.withRegistry("${DOCKER_REGISTRY}", 'docker') {
+        //                     docker.image("${DOCKER_IMAGE_NAME}:latest").push()
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Deploy to Kubernetes') {
             steps {
