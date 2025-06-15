@@ -100,38 +100,13 @@ pipeline {
             }
         }
         
-        // stage('Post Deploy Verification') {
-        //     steps {
-        //          dir('jenkar-war-deploy') {
-        //         sh "sleep 20"  // wait for pods to come up
-        //     sh "curl -f http://192.168.0.101:31000/health || exit 1"
-        //          }
-        //     }
-        // }
         stage('Post Deploy Verification') {
-    steps {
-        dir('jenkar-war-deploy') {
-            script {
-                def maxRetries = 12
-                def success = false
-                for (int i = 0; i < maxRetries; i++) {
-                    try {
-                        sh 'curl -f http://192.168.0.101:31000/health'
-                        echo "Health check succeeded"
-                        success = true
-                        break
-                    } catch (Exception e) {
-                        echo "Health check failed, retrying in 10 seconds... (${i+1}/${maxRetries})"
-                        sleep 10
-                    }
-                }
-                if (!success) {
-                    error("Health check failed after ${maxRetries} attempts")
-                }
+            steps {
+                 dir('jenkar-war-deploy') {
+                sh "sleep 20"  // wait for pods to come up
+            sh "curl -f http://192.168.0.101:31000/health || exit 1"
+                 }
             }
         }
-    }
-}
-
     }
 }
