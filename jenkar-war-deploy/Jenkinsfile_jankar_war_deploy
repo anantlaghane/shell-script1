@@ -94,6 +94,7 @@ pipeline {
         stage('Post Deploy Verification') {
             steps {
                  dir('jenkar-war-deploy') {
+                    sh 'ping -c 4 192.168.98.128'
                 sh "sleep 20"  // wait for pods to come up
             sh "curl -f http://192.168.98.128:31000/health || exit 1"
                  }
