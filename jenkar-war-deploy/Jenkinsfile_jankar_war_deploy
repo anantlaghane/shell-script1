@@ -95,10 +95,10 @@ pipeline {
             //     sh "kubectl apply -f k8s/service.yaml"
             //   }  
              sh 'kubectl get nodes'
-           dir('jenkar-war-deploy') {
-            withEnv(["KUBECONFIG=${env.KUBECONFIG}"]) {
-                sh "kubectl apply --insecure-skip-tls-verify -f k8s/deployment.yaml"
-                sh "kubectl apply --insecure-skip-tls-verify -f k8s/service.yaml"
+             dir('jenkar-war-deploy') {
+                withEnv(["KUBECONFIG=${env.KUBECONFIG}"]) {
+                  sh "kubectl --insecure-skip-tls-verify apply -f k8s/deployment.yaml"
+                  sh "kubectl --insecure-skip-tls-verify apply -f k8s/service.yaml"
             }
         }
             }
