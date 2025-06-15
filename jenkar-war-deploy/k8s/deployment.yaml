@@ -16,4 +16,4 @@ spec:
       - name: jenkar-war-container
         image: anantlaghane/jenkar-war-deploy:latest
         ports:
-        - containerPort: 8080
+        - containerPort: 8085
