@@ -90,14 +90,11 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-            //      dir('jenkar-war-deploy') {
-            //     sh "kubectl apply -f k8s/deployment.yaml"
-            //     sh "kubectl apply -f k8s/service.yaml"
-            //   }  
-            dir('jenkar-war-deploy') {
-            sh "kubectl apply --insecure-skip-tls-verify -f k8s/deployment.yaml"
-            sh "kubectl apply --insecure-skip-tls-verify -f k8s/service.yaml"
-        }
+                 dir('jenkar-war-deploy') {
+                sh "kubectl apply -f k8s/deployment.yaml"
+                sh "kubectl apply -f k8s/service.yaml"
+              }  
+            
             }
         }
         

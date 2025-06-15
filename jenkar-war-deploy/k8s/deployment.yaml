@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: jenkar-war-container
-        image: your-docker-registry/jenkar-war-deploy:latest
+        image: anantlaghane/jenkar-war-deploy:latest
         ports:
         - containerPort: 8080
