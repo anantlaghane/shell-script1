@@ -94,6 +94,8 @@ pipeline {
             //     sh "kubectl apply -f k8s/deployment.yaml"
             //     sh "kubectl apply -f k8s/service.yaml"
             //   }  
+         sudo -u jenkins kubectl get nodes --kubeconfig=/var/lib/jenkins/.kube/config --insecure-skip-tls-verify
+
            dir('jenkar-war-deploy') {
             withEnv(["KUBECONFIG=${env.KUBECONFIG}"]) {
                 sh "kubectl apply --insecure-skip-tls-verify -f k8s/deployment.yaml"
