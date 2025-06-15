@@ -104,7 +104,7 @@ pipeline {
             steps {
                  dir('jenkar-war-deploy') {
                 sh "sleep 20"  // wait for pods to come up
-            sh "curl -f http://192.168.98.128:31000/health || exit 1"
+            sh "curl -f http://172.26.170.164:31000/health || exit 1"
                  }
             }
         }
