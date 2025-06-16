@@ -91,14 +91,34 @@ pipeline {
             }
         }
         
+        // stage('Post Deploy Verification') {
+        //     steps {
+        //          dir('jenkar-war-deploy') {
+        //             sh 'ping -c 4 192.168.98.128'
+        //             sh 'ping -c 4 172.26.170.164'
+        //         sh "sleep 20"  // wait for pods to come up
+        //     sh "curl -f http://172.26.170.164:31000/health || exit 1"
+        //          }
+        //     }
+        // }
         stage('Post Deploy Verification') {
             steps {
-                 dir('jenkar-war-deploy') {
-                    sh 'ping -c 4 192.168.98.128'
-                    sh 'ping -c 4 172.26.170.164'
-                sh "sleep 20"  // wait for pods to come up
-            sh "curl -f http://172.26.170.164:31000/health || exit 1"
-                 }
+                dir('jenkar-war-deploy') {
+                    withEnv(["KUBECONFIG=${env.KUBECONFIG}"]) {
+
+                        // ✅ Step 1: Wait for deployment to roll out
+                        sh 'kubectl rollout status deployment/jenkar-deployment -n default --timeout=60s'
+
+                        // ✅ Step 2: Show pod status
+                        sh 'kubectl get pods -n default'
+
+                        // ✅ Step 3: Wait for service to be ready
+                        sh 'sleep 20'
+
+                        // ✅ Step 4: Use wget instead of curl for health check
+                        sh 'wget --spider --tries=3 --timeout=5 http://172.26.170.164:31000/health || exit 1'
+                    }
+                }
             }
         }
     }
