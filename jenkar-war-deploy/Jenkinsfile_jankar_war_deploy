@@ -107,7 +107,7 @@ pipeline {
                     withEnv(["KUBECONFIG=${env.KUBECONFIG}"]) {
 
                         // ✅ Step 1: Wait for deployment to roll out
-                        sh 'kubectl rollout status deployment/jenkar-deployment -n default --timeout=60s'
+                        sh 'kubectl rollout status deployment/jenkar-war-deploy -n default --timeout=60s'
 
                         // ✅ Step 2: Show pod status
                         sh 'kubectl get pods -n default'
