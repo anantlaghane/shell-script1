@@ -18,10 +18,11 @@
 FROM tomcat:8.5-jdk11-openjdk
 
 # Remove default webapps
-RUN rm -rf /usr/local/tomcat/webapps/*
+#RUN rm -rf /usr/local/tomcat/webapps/*
+RUN rm -rf /usr/local/tomcat/webapps/jenkar-war-deploy
 
 # Copy WAR file into Tomcat's webapps directory
-COPY target/jenkar-war-deploy-*.war /usr/local/tomcat/webapps/ROOT.war
+COPY target/jenkar-war-deploy-*.war /usr/local/tomcat/webapps/jenkar-war-deploy.war
 
 # Change Tomcat HTTP port from 8080 to 8085
 RUN sed -i 's/port="8080"/port="8086"/' /usr/local/tomcat/conf/server.xml
