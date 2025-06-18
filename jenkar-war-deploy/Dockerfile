@@ -22,7 +22,7 @@ FROM tomcat:8.5-jdk11-openjdk
 RUN rm -rf /usr/local/tomcat/webapps/*
 
 # Copy WAR file into Tomcat's webapps directory
-COPY target/jenkar-war-deploy-*.war /usr/local/tomcat/webapps/jenkar.war
+COPY target/jenkar-war-deploy-*.war /usr/local/tomcat/webapps/ROOT.war
 
 # Change Tomcat HTTP port from 8080 to 8085
 RUN sed -i 's/port="8080"/port="8086"/' /usr/local/tomcat/conf/server.xml
