@@ -24,10 +24,10 @@ RUN rm -rf /usr/local/tomcat/webapps/*
 COPY target/jenkar-war-deploy-*.war /usr/local/tomcat/webapps/ROOT.war
 
 # Change Tomcat HTTP port from 8080 to 8085
-RUN sed -i 's/port="8080"/port="8085"/' /usr/local/tomcat/conf/server.xml
+RUN sed -i 's/port="8080"/port="8086"/' /usr/local/tomcat/conf/server.xml
 
 # Expose custom Tomcat port
-EXPOSE 8085
+EXPOSE 8086
 
 # Start Tomcat
 CMD ["catalina.sh", "run"]
