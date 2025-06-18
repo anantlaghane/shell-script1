@@ -7,6 +7,6 @@
     <title>JenKar WAR Deploy</title>
 </head>
 <body>
-    <h1>Welcome to JenKar WAR Deploy Application!</h1>
+    <h1>Welcome to JenKar WAR Deploy Application!  Hello change </h1>
 </body>
 </html>
