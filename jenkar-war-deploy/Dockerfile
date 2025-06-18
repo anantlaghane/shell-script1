@@ -19,7 +19,7 @@ FROM tomcat:8.5-jdk11-openjdk
 
 # Remove default webapps
 #RUN rm -rf /usr/local/tomcat/webapps/*
-RUN rm -rf /usr/local/tomcat/webapps/jenkar-war-deploy
+RUN rm -rf /usr/local/tomcat/webapps/*
 
 # Copy WAR file into Tomcat's webapps directory
 COPY target/jenkar-war-deploy-*.war /usr/local/tomcat/webapps/jenkar-war-deploy.war
