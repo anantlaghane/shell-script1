@@ -86,7 +86,7 @@ pipeline {
             sh 'docker rm -f test-app || true'
 
             // Run container mapping port 8085
-            sh 'docker run -d -p 8085:8085 --name test-app anantlaghane/jenkar-war-deploy:latest'
+            sh 'docker run -d -p 8086:8085 --name test-app anantlaghane/jenkar-war-deploy:latest'
         }
     }
 }
