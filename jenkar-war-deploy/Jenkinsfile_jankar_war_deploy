@@ -79,17 +79,30 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
-            steps {
-             sh 'kubectl get nodes'
-            dir('jenkar-war-deploy') {
-            withEnv(["KUBECONFIG=${env.KUBECONFIG}"]) {
-                sh "kubectl apply -f k8s/deployment.yaml"
-                sh "kubectl apply -f k8s/service.yaml"
-            }
+        stage('Run Docker Locally') {
+    steps {
+        script {
+            // Stop and remove any old container
+            sh 'docker rm -f test-app || true'
+
+            // Run container mapping port 8085
+            sh 'docker run -d -p 8085:8085 --name test-app anantlaghane/jenkar-war-deploy:latest'
         }
-            }
-        }
+    }
+}
+
+
+        // stage('Deploy to Kubernetes') {
+        //     steps {
+        //      sh 'kubectl get nodes'
+        //     dir('jenkar-war-deploy') {
+        //     withEnv(["KUBECONFIG=${env.KUBECONFIG}"]) {
+        //         sh "kubectl apply -f k8s/deployment.yaml"
+        //         sh "kubectl apply -f k8s/service.yaml"
+        //     }
+        // }
+        //     }
+        // }
         
         // stage('Post Deploy Verification') {
         //     steps {
@@ -101,25 +114,25 @@ pipeline {
         //          }
         //     }
         // }
-        stage('Post Deploy Verification') {
-            steps {
-                dir('jenkar-war-deploy') {
-                    withEnv(["KUBECONFIG=${env.KUBECONFIG}"]) {
+        // stage('Post Deploy Verification') {
+        //     steps {
+        //         dir('jenkar-war-deploy') {
+        //             withEnv(["KUBECONFIG=${env.KUBECONFIG}"]) {
 
-                        // ✅ Step 1: Wait for deployment to roll out
-                        sh 'kubectl rollout status deployment/jenkar-war-deploy -n default --timeout=60s'
+        //                 // ✅ Step 1: Wait for deployment to roll out
+        //                 sh 'kubectl rollout status deployment/jenkar-war-deploy -n default --timeout=60s'
 
-                        // ✅ Step 2: Show pod status
-                        sh 'kubectl get pods -n default'
+        //                 // ✅ Step 2: Show pod status
+        //                 sh 'kubectl get pods -n default'
 
-                        // ✅ Step 3: Wait for service to be ready
-                        sh 'sleep 20'
+        //                 // ✅ Step 3: Wait for service to be ready
+        //                 sh 'sleep 20'
 
-                        // ✅ Step 4: Use wget instead of curl for health check
-                        sh 'wget --spider --tries=3 --timeout=5 http://172.26.170.164:31000/health || exit 1'
-                    }
-                }
-            }
-        }
+        //                 // ✅ Step 4: Use wget instead of curl for health check
+        //                 sh 'wget --spider --tries=3 --timeout=5 http://172.26.170.164:31000/health || exit 1'
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
