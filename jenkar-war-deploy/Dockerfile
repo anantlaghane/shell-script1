@@ -15,7 +15,7 @@
 
 
 # Base image with Tomcat 9 and OpenJDK 8
-FROM tomcat:8.5.97-jdk8-openjdk
+FROM tomcat:8.5-jdk11-openjdk
 
 # Remove default webapps
 RUN rm -rf /usr/local/tomcat/webapps/*
