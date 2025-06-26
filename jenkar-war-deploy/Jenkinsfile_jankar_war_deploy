@@ -79,17 +79,17 @@ pipeline {
             }
         }
 
-        stage('Run Docker Locally') {
-    steps {
-        script {
-            // Stop and remove any old container
-            sh 'docker rm -f test-app || true'
+//         stage('Run Docker Locally') {
+//     steps {
+//         script {
+//             // Stop and remove any old container
+//             sh 'docker rm -f test-app || true'
 
-            // Run container mapping port 8085
-            sh 'docker run -d -p 8086:8086 --name test-app anantlaghane/jenkar-war-deploy:latest'
-        }
-    }
-}
+//             // Run container mapping port 8085
+//             sh 'docker run -d -p 8086:8086 --name test-app anantlaghane/jenkar-war-deploy:latest'
+//         }
+//     }
+// }
 
 
         // stage('Deploy to Kubernetes') {
