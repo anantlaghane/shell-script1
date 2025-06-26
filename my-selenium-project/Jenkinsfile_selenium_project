@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven_3.8'
+        jdk 'Java_17'
+    }
+
+     stages {
+         stage('Checkout Git') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']], 
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/anantlaghane/shell-script1.git',
+                        credentialsId: 'Git'
+                    ]]
+                ])
+              }
+            }
+
+        stage('Run Tests') {
+            steps {
+                sh 'mvn clean test'
+            }
+        }
+
+        stage('Publish Report') {
+            steps {
+                junit '**/target/surefire-reports/*.xml'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Tests Passed'
+        }
+        failure {
+            echo 'Tests Failed'
+            // slackSend message: "Selenium Tests Failed in Build #${env.BUILD_NUMBER}"
+        }
+    }
+}
