@@ -23,7 +23,9 @@
     nav ul li a {color: white; text-decoration: none; font-weight: bold; transition: 0.3s;}
     nav ul li a:hover {color: #00adb5;}
 
-    section {padding: 80px 20px; max-width: 1000px; margin: auto;}
+    section {padding: 80px 20px; max-width: 1000px; margin: auto; opacity: 0; transform: translateY(40px); transition: all 1s ease;}
+
+    section.show {opacity: 1; transform: translateY(0);}
 
     .hero {
       background: linear-gradient(to right, #00adb5, #393e46);
@@ -33,27 +35,29 @@
     }
     .hero h1 {font-size: 3rem; margin-bottom: 15px;}
     .hero p {font-size: 1.2rem; margin-bottom: 20px;}
+    .typing {border-right: 2px solid #fff; padding-right: 5px; white-space: nowrap; overflow: hidden;}
+
     .hero a {background: #fff; color: #00adb5; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;}
     .hero a:hover {background: #e3f2fd;}
 
     h2 {font-size: 2rem; margin-bottom: 20px; text-align: center; color: #222;}
 
-    /* Skills */
     .skills-grid {
       display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 20px;
     }
     .skill {
       background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      text-align: center;
+      text-align: center; transition: transform 0.3s;
     }
+    .skill:hover {transform: scale(1.05);}
 
-    /* Experience & Projects */
     .card {
       background: #fff; padding: 20px; margin: 15px 0;
       border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
     }
+    .card:hover {transform: scale(1.03);}
 
-    /* Footer */
     footer {
       background: #222; color: white; text-align: center; padding: 20px;
     }
@@ -76,9 +80,9 @@
   </nav>
 
   <!-- Hero -->
-  <section class="hero">
+  <section class="hero show">
     <h1>👋 Hi, I'm Anant Laghane</h1>
-    <p>Entry-level DevOps Engineer | Pune, India</p>
+    <p class="typing"></p>
     <p><a href="mailto:anantlaghane@gmail.com">anantlaghane@gmail.com</a> | +91 9511928295</p>
     <a href="#about">Explore My Portfolio</a>
   </section>
@@ -186,5 +190,35 @@
     <a href="https://www.linkedin.com/in/anantlaghane">LinkedIn</a> | 
     <a href="https://github.com/">GitHub</a>
   </footer>
+
+  <!-- JS Animations -->
+  <script>
+    // Typing Effect
+    const typingText = ["DevOps Engineer", "Cloud Enthusiast", "Learner"];
+    let count = 0, index = 0, currentText = "", letter = "";
+    function type() {
+      if (count === typingText.length) count = 0;
+      currentText = typingText[count];
+      letter = currentText.slice(0, ++index);
+      document.querySelector(".typing").textContent = letter;
+      if (letter.length === currentText.length) {
+        count++; index = 0;
+        setTimeout(type, 1000);
+      } else {
+        setTimeout(type, 150);
+      }
+    }
+    type();
+
+    // Fade-in on Scroll
+    const sections = document.querySelectorAll("section");
+    window.addEventListener("scroll", () => {
+      const trigger = window.innerHeight * 0.8;
+      sections.forEach(sec => {
+        const top = sec.getBoundingClientRect().top;
+        if (top < trigger) sec.classList.add("show");
+      });
+    });
+  </script>
 </body>
 </html>
