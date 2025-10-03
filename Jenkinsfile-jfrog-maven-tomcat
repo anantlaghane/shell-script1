@@ -30,6 +30,17 @@ pipeline {
             }
         }
 
+        stage('Run Unit Tests')
+        when{
+            expression { params.ACTION == 'build' || params.ACTION == 'buils-deploy'
+             }
+             steps {
+                script {
+                    sh 'cd my_maven && mvn test'
+                }
+             }
+        }
+
         stage('Build and Upload WAR') {
             when {
                 expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
