@@ -32,7 +32,7 @@ pipeline {
 
         stage('Run Unit Tests'){
         when{
-            expression { params.ACTION == 'build' || params.ACTION == 'buils-deploy'}
+            expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' || params.ACTION == 'deploy'}
              }
              steps {
                 script {
