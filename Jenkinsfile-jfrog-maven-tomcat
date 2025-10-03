@@ -15,7 +15,7 @@ pipeline {
         choice(name: 'ACTION', choices: ['build', 'deploy', 'build-deploy'], description: 'Choose action')
         string(name: 'APP_NAME', defaultValue: 'sample', description: 'App name to deploy')
         choice(name: 'DEPLOY_ENV', choices: ['dev', 'prod'], description: 'Deployment environment')
-    } 
+    }
 
     stages {
         stage('Checkout Git') {
@@ -31,24 +31,33 @@ pipeline {
             }
         }
 
-        stage('Run Unit Tests'){
-        when{
-            expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' || params.ACTION == 'deploy'}
-             }
-             steps {
-                script {
-                    sh 'cd my_maven && mvn test'
-                }
-             }
+        stage('Run Unit Tests') {
+            when {
+                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
+            }
+            steps {
+                sh 'cd my_maven && mvn test'
+            }
         }
 
         stage('SonarQube Analysis') {
             when {
-                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' || params.ACTION == 'deploy' }
+                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
             }
             steps {
-                withSonarQubeEnv('Sonar') { 
+                withSonarQubeEnv("${SONARQUBE}") {
                     sh 'cd my_maven && mvn sonar:sonar'
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            when {
+                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
+            }
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
@@ -67,19 +76,15 @@ pipeline {
                     rtMaven.resolver server: server, releaseRepo: 'maven', snapshotRepo: 'maven'
                     rtMaven.deployer server: server, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-release-local'
 
-                    // Build timestamp
                     def buildTime = new Date().format("yyyyMMdd-HHmmss")
                     def buildNumber = currentBuild.number
 
-                    // Auto-detect WAR file
                     def warFile = sh(script: "ls my_maven/target/*.war | head -1", returnStdout: true).trim()
                     def warName = "${params.APP_NAME}-${buildNumber}-${buildTime}.war"
 
-                    // Rename WAR file
-                    sh "mv ${warFile} my_maven/target/${warName} || true"
+                    sh "mv ${warFile} my_maven/target/${warName}"
                     env.WAR_NAME = warName
 
-                    // Upload WAR to Artifactory
                     def uploadSpec = """{
                         "files": [
                             {
@@ -99,22 +104,17 @@ pipeline {
             }
             steps {
                 script {
-                    // Find latest WAR file
                     def warPath = sh(script: "ls -t my_maven/target/*.war | head -1", returnStdout: true).trim()
                     def warName = warPath.tokenize('/').last()
                     env.WAR_NAME = warName
 
-                    // Choose Tomcat URL
-                    def tomcatUrl = ""
-                    if (params.DEPLOY_ENV == 'dev') {
-                        tomcatUrl = "http://localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
-                    } else if (params.DEPLOY_ENV == 'prod') {
-                        tomcatUrl = "http://prod-server:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
-                    }
+                    def tomcatUrl = (params.DEPLOY_ENV == 'dev') ? 
+                        "http://localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true" : 
+                        "http://prod-server:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
 
                     echo "Deploying ${env.WAR_NAME} to ${params.DEPLOY_ENV} environment"
                     sh """
-                        curl -v -u admin:Anant@123 -T my_maven/target/${env.WAR_NAME} \\
+                        curl -v -u admin:Anant@123 -T my_maven/target/${env.WAR_NAME} \
                         "${tomcatUrl}"
                     """
                 }
