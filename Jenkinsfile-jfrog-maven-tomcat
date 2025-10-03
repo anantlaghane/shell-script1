@@ -1,7 +1,6 @@
 pipeline {
     agent any
 
-
     tools {
         maven 'Maven-3.9'
     }
@@ -10,14 +9,15 @@ pipeline {
         ARTIFACTORY = 'Artifactory'
         REPO = 'libs-release-local'
     }
+
     parameters {
-    choice(name: 'ACTION', choices: ['build', 'deploy', 'build-deploy'], description: 'Choose action')
-    string(name: 'APP_NAME', defaultValue: 'sample', description: 'App name to deploy')
-    choice(name: 'DEPLOY_ENV', choices: ['dev', 'prod'], description: 'Deployment environment')
+        choice(name: 'ACTION', choices: ['build', 'deploy', 'build-deploy'], description: 'Choose action')
+        string(name: 'APP_NAME', defaultValue: 'sample', description: 'App name to deploy')
+        choice(name: 'DEPLOY_ENV', choices: ['dev', 'prod'], description: 'Deployment environment')
     } 
 
- stages{
-     stage('Checkout Git') {
+    stages {
+        stage('Checkout Git') {
             steps {
                 checkout([
                     $class: 'GitSCM',
@@ -27,52 +27,38 @@ pipeline {
                         credentialsId: 'Git'
                     ]]
                 ])
-              }
             }
+        }
 
-        stage('Build and Upload') {
+        stage('Build and Upload WAR') {
             when {
                 expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
             }
             steps {
-
                 script {
                     sh 'cd my_maven && mvn clean package'
-                    //sh "mv my_maven/target/*.war my_maven/target/${params.APP_NAME}.war"
+
                     def server = Artifactory.server("${ARTIFACTORY}")
                     def rtMaven = Artifactory.newMavenBuild()
                     rtMaven.tool = 'Maven-3.9'
                     rtMaven.resolver server: server, releaseRepo: 'maven', snapshotRepo: 'maven'
                     rtMaven.deployer server: server, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-release-local'
 
-                     // Build timestamp
+                    // Build timestamp
                     def buildTime = new Date().format("yyyyMMdd-HHmmss")
-                    // Jenkins build number
                     def buildNumber = currentBuild.number
 
-                    
-                  // Auto-detect war and jar file names
-                def jarFile = sh(script: "ls my_maven/target/*.jar | grep -v 'original' | grep -v 'sources' | head -1", returnStdout: true).trim()
-                def warFile = sh(script: "ls my_maven/target/*.war | head -1", returnStdout: true).trim()
-
-                  // Final artifact name with build number & timestamp
+                    // Auto-detect WAR file
+                    def warFile = sh(script: "ls my_maven/target/*.war | head -1", returnStdout: true).trim()
                     def warName = "${params.APP_NAME}-${buildNumber}-${buildTime}.war"
-                    def jarName = "${params.APP_NAME}-${buildNumber}-${buildTime}.jar"
-                    // Rename the war file
-                   //  sh "mv my_maven/target/${params.APP_NAME}*-exec.jar my_maven/target/${jarName}"
-                     //sh "mv my_maven/target/${params.APP_NAME}.war my_maven/target/${warName}" 
-                    sh "mv ${jarFile} my_maven/target/${jarName} || true"
-                    sh "mv ${warFile} my_maven/target/${warName} || true"  
-                    env.JAR_NAME = jarName
+
+                    // Rename WAR file
+                    sh "mv ${warFile} my_maven/target/${warName} || true"
                     env.WAR_NAME = warName
 
-
+                    // Upload WAR to Artifactory
                     def uploadSpec = """{
                         "files": [
-                            {
-                                "pattern": "my_maven/target/${jarName}",
-                                "target": "${REPO}/${params.APP_NAME}/"   
-                            },
                             {
                                 "pattern": "my_maven/target/${warName}",
                                 "target": "${REPO}/${params.APP_NAME}/"
@@ -90,16 +76,17 @@ pipeline {
             }
             steps {
                 script {
-                     // Find WAR file name
-                     def warPath = sh(script: "ls my_maven/target/*.war", returnStdout: true).trim()
-                     def warName = warPath.tokenize('/').last()
-                     env.WAR_NAME = warName
-// Choose URL based on DEPLOY_ENV
+                    // Find latest WAR file
+                    def warPath = sh(script: "ls -t my_maven/target/*.war | head -1", returnStdout: true).trim()
+                    def warName = warPath.tokenize('/').last()
+                    env.WAR_NAME = warName
+
+                    // Choose Tomcat URL
                     def tomcatUrl = ""
                     if (params.DEPLOY_ENV == 'dev') {
                         tomcatUrl = "http://localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
                     } else if (params.DEPLOY_ENV == 'prod') {
-                        tomcatUrl = "http://prod-server:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"  //reminder add one remote tomcat server and add this ip
+                        tomcatUrl = "http://prod-server:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
                     }
 
                     echo "Deploying ${env.WAR_NAME} to ${params.DEPLOY_ENV} environment"
@@ -110,6 +97,5 @@ pipeline {
                 }
             }
         }
-
     }
 }
