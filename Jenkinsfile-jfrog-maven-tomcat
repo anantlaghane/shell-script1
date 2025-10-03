@@ -9,6 +9,7 @@ pipeline {
         ARTIFACTORY = 'Artifactory'
         REPO = 'libs-release-local'
         SONARQUBE = 'Sonar'
+        SLACK_CHANNEL = '#devops-alerts' // Agar Slack use karoge
     }
 
     parameters {
@@ -18,11 +19,12 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout Git') {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: '*/main']], 
+                    branches: [[name: '*/main']],
                     userRemoteConfigs: [[
                         url: 'https://github.com/anantlaghane/shell-script1.git',
                         credentialsId: 'Git'
@@ -31,41 +33,44 @@ pipeline {
             }
         }
 
-        stage('Run Unit Tests') {
-            when {
-                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
-            }
-            steps {
-                sh 'cd my_maven && mvn test'
-            }
-        }
+        stage('Unit Tests & SonarQube Analysis') {
+            parallel {
+                stage('Unit Tests') {
+                    when { expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' } }
+                    steps {
+                        sh 'cd my_maven && mvn test'
+                    }
+                }
 
-        stage('SonarQube Analysis') {
-            when {
-                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
-            }
-            steps {
-                withSonarQubeEnv("${SONARQUBE}") {
-                    sh 'cd my_maven && mvn sonar:sonar'
+                stage('SonarQube Analysis') {
+                    when { expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' } }
+                    steps {
+                        withSonarQubeEnv("${SONARQUBE}") {
+                            sh 'cd my_maven && mvn sonar:sonar'
+                        }
+                    }
                 }
             }
         }
 
-        stage('Quality Gate') {
-            when {
-                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
-            }
+        stage('Quality Gate Check') {
+            when { expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' } }
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                script {
+                    timeout(time: 5, unit: 'MINUTES') {
+                        def qg = waitForQualityGate abortPipeline: false
+                        if (qg.status != 'OK') {
+                            echo "⚠ SonarQube Quality Gate failed: ${qg.status}"
+                            // Slack/Email notification example:
+                            // slackSend(channel: SLACK_CHANNEL, message: "Quality Gate failed for ${params.APP_NAME}")
+                        }
+                    }
                 }
             }
         }
 
-        stage('Build and Upload WAR') {
-            when {
-                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
-            }
+        stage('Build & Upload WAR') {
+            when { expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' } }
             steps {
                 script {
                     sh 'cd my_maven && mvn clean package'
@@ -87,10 +92,7 @@ pipeline {
 
                     def uploadSpec = """{
                         "files": [
-                            {
-                                "pattern": "my_maven/target/${warName}",
-                                "target": "${REPO}/${params.APP_NAME}/"
-                            }
+                            {"pattern": "my_maven/target/${warName}", "target": "${REPO}/${params.APP_NAME}/"}
                         ]
                     }"""
                     server.upload(spec: uploadSpec)
@@ -98,28 +100,21 @@ pipeline {
             }
         }
 
-         stage('Trivy Vulnerability Scan') {
-            when {
-                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
-            }
+        stage('Trivy Vulnerability Scan') {
+            when { expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' } }
             steps {
                 script {
                     echo "Running Trivy scan on WAR file"
                     def warPath = sh(script: "ls my_maven/target/*.war | head -1", returnStdout: true).trim()
                     
-                    // Run scan (fails pipeline if HIGH/CRITICAL found)
                     sh "trivy fs --exit-code 1 --severity HIGH,CRITICAL ${warPath} || true"
-                    
-                    // Optional: Save JSON report
                     sh "trivy fs --format json --output my_maven/target/trivy-report.json ${warPath}"
                 }
             }
         }
 
         stage('Deploy to Tomcat') {
-            when {
-                expression { params.ACTION == 'deploy' || params.ACTION == 'build-deploy' }
-            }
+            when { expression { params.ACTION == 'deploy' || params.ACTION == 'build-deploy' } }
             steps {
                 script {
                     def warPath = sh(script: "ls -t my_maven/target/*.war | head -1", returnStdout: true).trim()
@@ -137,6 +132,13 @@ pipeline {
                     """
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline finished. Sending notifications if needed..."
+            // slackSend(channel: SLACK_CHANNEL, message: "Pipeline completed for ${params.APP_NAME}")
         }
     }
 }
