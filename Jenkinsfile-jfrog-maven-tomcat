@@ -8,6 +8,7 @@ pipeline {
     environment {
         ARTIFACTORY = 'Artifactory'
         REPO = 'libs-release-local'
+        SONARQUBE = 'Sonar'
     }
 
     parameters {
@@ -39,6 +40,17 @@ pipeline {
                     sh 'cd my_maven && mvn test'
                 }
              }
+        }
+
+        stage('SonarQube Analysis') {
+            when {
+                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' || params.ACTION == 'deploy' }
+            }
+            steps {
+                withSonarQubeEnv('Sonar') { 
+                    sh 'cd my_maven && mvn sonar:sonar'
+                }
+            }
         }
 
         stage('Build and Upload WAR') {
