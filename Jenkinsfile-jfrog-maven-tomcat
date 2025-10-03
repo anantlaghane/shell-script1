@@ -98,6 +98,24 @@ pipeline {
             }
         }
 
+         stage('Trivy Vulnerability Scan') {
+            when {
+                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
+            }
+            steps {
+                script {
+                    echo "Running Trivy scan on WAR file"
+                    def warPath = sh(script: "ls my_maven/target/*.war | head -1", returnStdout: true).trim()
+                    
+                    // Run scan (fails pipeline if HIGH/CRITICAL found)
+                    sh "trivy fs --exit-code 1 --severity HIGH,CRITICAL ${warPath} || true"
+                    
+                    // Optional: Save JSON report
+                    sh "trivy fs --format json --output my_maven/target/trivy-report.json ${warPath}"
+                }
+            }
+        }
+
         stage('Deploy to Tomcat') {
             when {
                 expression { params.ACTION == 'deploy' || params.ACTION == 'build-deploy' }
