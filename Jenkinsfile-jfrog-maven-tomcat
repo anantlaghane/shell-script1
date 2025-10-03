@@ -30,9 +30,9 @@ pipeline {
             }
         }
 
-        stage('Run Unit Tests')
+        stage('Run Unit Tests'){
         when{
-            expression { params.ACTION == 'build' || params.ACTION == 'buils-deploy'
+            expression { params.ACTION == 'build' || params.ACTION == 'buils-deploy'}
              }
              steps {
                 script {
