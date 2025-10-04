@@ -32,7 +32,7 @@ pipeline {
         }
 
         stage('Parallel Build & Scan') {
-            when { expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' } }
+            when { expression { params.ACTION == 'build' || params.ACTION == 'deploy' || params.ACTION == 'build-deploy' } }
             parallel {
                 stage('Run Unit Tests & Build WAR') {
                     steps {
