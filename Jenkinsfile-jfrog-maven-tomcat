@@ -24,7 +24,7 @@ pipeline {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: '*/main']], 
+                    branches: [[name: '*/main']],
                     userRemoteConfigs: [[
                         url: 'https://github.com/anantlaghane/shell-script1.git',
                         credentialsId: 'Git'
@@ -41,7 +41,16 @@ pipeline {
                         script {
                             sh 'cd my_maven && mvn clean package'
                             def warFile = sh(script: "ls my_maven/target/*.war | head -1", returnStdout: true).trim()
-                            env.WAR_NAME = warFile.tokenize('/').last()
+
+                            // Sanitize filename
+                            def safeAppName = params.APP_NAME.replaceAll("\\s+", "_")
+                            def buildTime = new Date().format("yyyyMMdd-HHmmss")
+                            def buildNumber = currentBuild.number
+                            def warName = "${safeAppName}-${buildNumber}-${buildTime}.war"
+
+                            sh "mv \"${warFile}\" my_maven/target/${warName}"
+                            env.WAR_NAME = warName
+                            env.SAFE_APP_NAME = safeAppName
                         }
                     }
                 }
@@ -57,9 +66,9 @@ pipeline {
                 stage('Trivy Scan') {
                     steps {
                         script {
-                            def warPath = sh(script: "ls my_maven/target/*.war | head -1", returnStdout: true).trim()
-                            sh "trivy fs --exit-code 1 --severity HIGH,CRITICAL ${warPath} || true"
-                            sh "trivy fs --format json --output my_maven/target/trivy-report.json ${warPath}"
+                            def warPath = "my_maven/target/${env.WAR_NAME}"
+                            sh "trivy fs --exit-code 1 --severity HIGH,CRITICAL \"${warPath}\" || true"
+                            sh "trivy fs --format json --output my_maven/target/trivy-report.json \"${warPath}\""
                         }
                     }
                 }
@@ -73,11 +82,8 @@ pipeline {
                         def qg = waitForQualityGate()
                         if (qg.status != 'OK') {
                             echo "⚠️ Quality Gate failed: ${qg.status}"
-                            // Slack Alert
                             slackSend(channel: "${SLACK_CHANNEL}", color: 'danger', message: "Quality Gate FAILED for ${params.APP_NAME}")
-                            // Email Alert
                             mail(to: "${EMAIL_TO}", subject: "Quality Gate FAILED for ${params.APP_NAME}", body: "Check Jenkins build #${currentBuild.number}")
-                            // Do not abort dev build
                             if(params.DEPLOY_ENV == 'prod') {
                                 error "Quality Gate failed. Prod deploy aborted!"
                             }
@@ -102,7 +108,7 @@ pipeline {
                         "files": [
                             {
                                 "pattern": "my_maven/target/${env.WAR_NAME}",
-                                "target": "${REPO}/${params.APP_NAME}/"
+                                "target": "${REPO}/${env.SAFE_APP_NAME}/"
                             }
                         ]
                     }"""
@@ -116,16 +122,16 @@ pipeline {
             steps {
                 script {
                     def tomcatUrl = (params.DEPLOY_ENV == 'dev') ?
-                        "http://localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true" :
-                        "http://prod-server:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
+                        "http://localhost:8085/manager/text/deploy?path=/${env.SAFE_APP_NAME}&update=true" :
+                        "http://prod-server:8085/manager/text/deploy?path=/${env.SAFE_APP_NAME}&update=true"
 
                     sh """
-                        curl -v -u admin:Anant@123 -T my_maven/target/${env.WAR_NAME} \
+                        curl -v -u admin:Anant@123 -T "my_maven/target/${env.WAR_NAME}" \
                         "${tomcatUrl}"
                     """
 
-                    // Optional: Grafana metrics update via Prometheus push gateway
-                    sh "echo 'jenkins_pipeline_status{app=\"${params.APP_NAME}\",env=\"${params.DEPLOY_ENV}\"} 1' | curl --data-binary @- http://prometheus-pushgateway:9091/metrics/job/jenkins"
+                    // Grafana metrics (Prometheus Push Gateway)
+                    sh "echo 'jenkins_pipeline_status{app=\"${env.SAFE_APP_NAME}\",env=\"${params.DEPLOY_ENV}\"} 1' | curl --data-binary @- http://prometheus-pushgateway:9091/metrics/job/jenkins"
                 }
             }
         }
