@@ -9,6 +9,8 @@ pipeline {
         ARTIFACTORY = 'Artifactory'
         REPO = 'libs-release-local'
         SONARQUBE = 'Sonar'
+        SLACK_CHANNEL = '#devops-alerts'
+        EMAIL_TO = 'team@example.com'
     }
 
     parameters {
@@ -31,64 +33,75 @@ pipeline {
             }
         }
 
-        stage('Run Unit Tests') {
-            when {
-                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
-            }
-            steps {
-                sh 'cd my_maven && mvn test'
-            }
-        }
+        stage('Parallel Build & Scan') {
+            when { expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' } }
+            parallel {
+                stage('Run Unit Tests & Build WAR') {
+                    steps {
+                        script {
+                            sh 'cd my_maven && mvn clean package'
+                            def warFile = sh(script: "ls my_maven/target/*.war | head -1", returnStdout: true).trim()
+                            env.WAR_NAME = warFile.tokenize('/').last()
+                        }
+                    }
+                }
 
-        stage('SonarQube Analysis') {
-            when {
-                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
-            }
-            steps {
-                withSonarQubeEnv("${SONARQUBE}") {
-                    sh 'cd my_maven && mvn sonar:sonar'
+                stage('SonarQube Analysis') {
+                    steps {
+                        withSonarQubeEnv("${SONARQUBE}") {
+                            sh 'cd my_maven && mvn sonar:sonar'
+                        }
+                    }
+                }
+
+                stage('Trivy Scan') {
+                    steps {
+                        script {
+                            def warPath = sh(script: "ls my_maven/target/*.war | head -1", returnStdout: true).trim()
+                            sh "trivy fs --exit-code 1 --severity HIGH,CRITICAL ${warPath} || true"
+                            sh "trivy fs --format json --output my_maven/target/trivy-report.json ${warPath}"
+                        }
+                    }
                 }
             }
         }
 
-        stage('Quality Gate') {
-            when {
-                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
-            }
-            steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
-
-        stage('Build and Upload WAR') {
-            when {
-                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
-            }
+        stage('Quality Gate & Alerts') {
             steps {
                 script {
-                    sh 'cd my_maven && mvn clean package'
+                    timeout(time: 5, unit: 'MINUTES') {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            echo "⚠️ Quality Gate failed: ${qg.status}"
+                            // Slack Alert
+                            slackSend(channel: "${SLACK_CHANNEL}", color: 'danger', message: "Quality Gate FAILED for ${params.APP_NAME}")
+                            // Email Alert
+                            mail(to: "${EMAIL_TO}", subject: "Quality Gate FAILED for ${params.APP_NAME}", body: "Check Jenkins build #${currentBuild.number}")
+                            // Do not abort dev build
+                            if(params.DEPLOY_ENV == 'prod') {
+                                error "Quality Gate failed. Prod deploy aborted!"
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
+        stage('Manual Prod Approval') {
+            when { expression { params.DEPLOY_ENV == 'prod' && (params.ACTION == 'deploy' || params.ACTION == 'build-deploy') } }
+            steps {
+                input message: "Approve PROD deployment for ${params.APP_NAME}?", ok: "Deploy"
+            }
+        }
+
+        stage('Upload to Artifactory') {
+            steps {
+                script {
                     def server = Artifactory.server("${ARTIFACTORY}")
-                    def rtMaven = Artifactory.newMavenBuild()
-                    rtMaven.tool = 'Maven-3.9'
-                    rtMaven.resolver server: server, releaseRepo: 'maven', snapshotRepo: 'maven'
-                    rtMaven.deployer server: server, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-release-local'
-
-                    def buildTime = new Date().format("yyyyMMdd-HHmmss")
-                    def buildNumber = currentBuild.number
-
-                    def warFile = sh(script: "ls my_maven/target/*.war | head -1", returnStdout: true).trim()
-                    def warName = "${params.APP_NAME}-${buildNumber}-${buildTime}.war"
-
-                    sh "mv ${warFile} my_maven/target/${warName}"
-                    env.WAR_NAME = warName
-
                     def uploadSpec = """{
                         "files": [
                             {
-                                "pattern": "my_maven/target/${warName}",
+                                "pattern": "my_maven/target/${env.WAR_NAME}",
                                 "target": "${REPO}/${params.APP_NAME}/"
                             }
                         ]
@@ -98,45 +111,32 @@ pipeline {
             }
         }
 
-         stage('Trivy Vulnerability Scan') {
-            when {
-                expression { params.ACTION == 'build' || params.ACTION == 'build-deploy' }
-            }
-            steps {
-                script {
-                    echo "Running Trivy scan on WAR file"
-                    def warPath = sh(script: "ls my_maven/target/*.war | head -1", returnStdout: true).trim()
-                    
-                    // Run scan (fails pipeline if HIGH/CRITICAL found)
-                    sh "trivy fs --exit-code 1 --severity HIGH,CRITICAL ${warPath} || true"
-                    
-                    // Optional: Save JSON report
-                    sh "trivy fs --format json --output my_maven/target/trivy-report.json ${warPath}"
-                }
-            }
-        }
-
         stage('Deploy to Tomcat') {
-            when {
-                expression { params.ACTION == 'deploy' || params.ACTION == 'build-deploy' }
-            }
+            when { expression { params.ACTION == 'deploy' || params.ACTION == 'build-deploy' } }
             steps {
                 script {
-                    def warPath = sh(script: "ls -t my_maven/target/*.war | head -1", returnStdout: true).trim()
-                    def warName = warPath.tokenize('/').last()
-                    env.WAR_NAME = warName
-
-                    def tomcatUrl = (params.DEPLOY_ENV == 'dev') ? 
-                        "http://localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true" : 
+                    def tomcatUrl = (params.DEPLOY_ENV == 'dev') ?
+                        "http://localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true" :
                         "http://prod-server:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
 
-                    echo "Deploying ${env.WAR_NAME} to ${params.DEPLOY_ENV} environment"
                     sh """
                         curl -v -u admin:Anant@123 -T my_maven/target/${env.WAR_NAME} \
                         "${tomcatUrl}"
                     """
+
+                    // Optional: Grafana metrics update via Prometheus push gateway
+                    sh "echo 'jenkins_pipeline_status{app=\"${params.APP_NAME}\",env=\"${params.DEPLOY_ENV}\"} 1' | curl --data-binary @- http://prometheus-pushgateway:9091/metrics/job/jenkins"
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            slackSend(channel: "${SLACK_CHANNEL}", color: 'good', message: "✅ Build & Deploy SUCCESS for ${params.APP_NAME}")
+        }
+        failure {
+            slackSend(channel: "${SLACK_CHANNEL}", color: 'danger', message: "❌ Build & Deploy FAILED for ${params.APP_NAME}")
         }
     }
 }
