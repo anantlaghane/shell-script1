@@ -91,6 +91,7 @@ pipeline {
             steps {
                 script {
                     def server = Artifactory.server("${ARTIFACTORY}")
+                    def appFolder = params.APP_NAME.trim()
                     def uploadSpec = """{
                         "files": [
                             {
