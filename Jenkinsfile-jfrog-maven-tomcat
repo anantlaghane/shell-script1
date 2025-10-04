@@ -111,7 +111,7 @@ pipeline {
                 script {
                     def tomcatUrl = (params.DEPLOY_ENV == 'dev') ?
                         "http://localhost:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true" :
-                        "http://prod-server:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
+                        "http://172.26.170.164:8085/manager/text/deploy?path=/${params.APP_NAME}&update=true"
 
                     sh """
                         curl -v -u admin:Anant@123 -T my_maven/target/${env.WAR_NAME} \
